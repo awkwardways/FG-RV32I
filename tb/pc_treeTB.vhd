@@ -7,14 +7,15 @@ end entity pc_treeTB;
 architecture sim of pc_treeTB is
   constant INSTR_WIDTH_TB : integer := 32;
   constant ADDR_WIDTH_TB  : integer := 32;
+  constant DATA_WIDTH_TB  : integer := 32;
   constant CLK_FREQ       : integer := 20e6;
   constant CLK_PERIOD     : time    := 1000 ms / CLK_FREQ;
 
   signal address_out_tb : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0);
-  signal pc_tb          : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0);
   signal address_tb     : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"ffaa0127";
   signal offset_tb      : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"aa000033";
   signal mar_addr_out   : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0);
+  signal ram_dout_tb    : std_logic_vector(DATA_WIDTH_tb - 1 downto 0);
   signal stall_tb       : std_logic;
   signal address_src_tb : std_logic := '0';
   signal pc_mod_tb      : std_logic := '0';
@@ -31,23 +32,11 @@ begin
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
   port map(
-    address_in  => pc_tb,
+    address_in  => address_out_tb,
     address_out => mar_addr_out, 
+    reset       => reset_tb,
     clk         => clk_tb,
     wre         => wre_tb
-  );
-
-  PC: entity work.program_counter(rtl)
-  generic map(
-    ADDR_WIDTH => ADDR_WIDTH_TB
-  )
-  port map(
-    pc_in => address_out_tb,
-    pc_out => pc_tb,
-    inc => pc_mod_tb,
-    wre => wre_tb,
-    clk => clk_tb,
-    reset => reset_tb
   );
 
   UUT: entity work.pc_tree(rtl)
@@ -58,30 +47,47 @@ begin
   port map(
     address_out => address_out_tb,
     stall => stall_tb,
-    pc => pc_tb,
+    pc => mar_addr_out,
     address => address_tb,
     offset => offset_tb,
     address_src => address_src_tb,
     pc_mod => pc_mod_tb
   );
 
+  RAM: entity work.ram(rtl)
+  generic map( 
+    ADDR_WIDTH => 12,
+    DATA_WIDTH => DATA_WIDTH_TB
+  )
+  port map(
+    address => mar_addr_out(11 downto 0),
+    din => (others => '0'),
+    dout => ram_dout_tb,
+    mask => "00",
+    en => '1',
+    wre => '0',
+    clk => clk_tb
+  );
+
   stimuli: process
   begin
     reset_tb <= '0';
     wait until rising_edge(clk_tb);
-    assert pc_tb = x"00000000" report "Address going into the MAR is not correct" severity failure;
+    assert mar_addr_out = x"00000000" report "Address being output by MAR does not match expected (0x00000000)" severity failure;
+    wait until falling_edge(clk_tb);
     wre_tb <= '1';
     wait until rising_edge(clk_tb);
-    wait for 1 ns;  --Wait for delta cycles to propagate
     wre_tb <= '0';
-    assert mar_addr_out = x"00000000" and pc_tb = x"00000004" report "Address found at MAR or address found at pc is incorrect" severity failure;
+    wait for 1 ns;
+    assert mar_addr_out = x"00000004" report "Address being output by MAR does not match expected (0x00000004)" severity failure;
+    wait until falling_edge(clk_tb);
+    wre_tb <= '1';
     pc_mod_tb <= '1';
     wait until rising_edge(clk_tb);
-    wre_tb <= '1';
-    assert address_out_tb = x"aa000037" report "Offset address is incorrect" severity failure;
-    wait until rising_edge(clk_tb);
-    wait for 1 ns;  --Wait for delta cycles to propagate
-    assert mar_addr_out = x"aa000037" and pc_tb = x"aa00003b" report "Address found at MAR or address found at pc is incorrect" severity failure;
+    wre_tb <= '0';
+    pc_mod_tb <= '0';
+    wait for 1 ns;
+    assert mar_addr_out = x"aa000037" and address_out_tb = x"aa00003b" report "Address being output by MAR or address being output by PC selection tree do not match expected (0xaa000037, 0xaa00003b)" severity failure;
     wait;
 
   end process;
