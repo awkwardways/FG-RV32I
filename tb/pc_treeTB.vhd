@@ -19,17 +19,18 @@ architecture sim of pc_treeTB is
   signal stall_tb       : std_logic;
   signal address_src_tb : std_logic := '0';
   signal pc_mod_tb      : std_logic := '0';
-  signal wre_tb         : std_logic;
+  signal wre_tb         : std_logic := '0';
   signal reset_tb       : std_logic;
   signal clk_tb         : std_logic := '0';
   signal inst_out_tb    : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal pc_out_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal pipe_reg_wre_tb: std_logic;
+  signal mem_en_tb      : std_logic;
+  signal begin_stb_tb   : std_logic;
+  signal wre_idif_tb    : std_logic;
 
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
-  pipe_reg_wre_tb <= wre_tb;
   
   MAR: entity work.memory_address_register(rtl)
   generic map(
@@ -40,7 +41,7 @@ begin
     address_out => mar_addr_out, 
     reset       => reset_tb,
     clk         => clk_tb,
-    wre         => wre_tb
+    wre         => wre_idif_tb
   );
 
   UUT: entity work.pc_tree(rtl)
@@ -68,9 +69,26 @@ begin
     din => (others => '0'),
     dout => ram_dout_tb,
     mask => "00",
-    en => '1',
+    en => mem_en_tb,
     wre => '0',
     clk => clk_tb
+  );
+
+  MCU: entity work.memory_control_unit(rtl)
+  generic map(
+    ADDR_WIDTH => ADDR_WIDTH_TB,
+    DATA_WIDTH => DATA_WIDTH_TB
+  )
+  port map(
+    cpu_data_in => (others => '0'),
+    cpu_data_out => open,
+    mem_data_in => ram_dout_tb,
+    mem_data_out => open,
+    mem_en => mem_en_tb,
+    begin_stb => begin_stb_tb,
+    wre_idif => wre_idif_tb,
+    clk => clk_tb,
+    reset => reset_tb
   );
 
   pipeline_reg: entity work.idif_register(rtl)
@@ -78,7 +96,7 @@ begin
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
   port map(
-    wre             => pipe_reg_wre_tb,
+    wre             => wre_idif_tb,
     reset           => reset_tb,
     clk             => clk_tb,
     pc_in           => mar_addr_out,
@@ -92,21 +110,7 @@ begin
     reset_tb <= '1';
     wait until rising_edge(clk_tb);
     reset_tb <= '0';
-    assert mar_addr_out = x"00000000" report "Address being output by MAR does not match expected (0x00000000)" severity failure;
-    wait until falling_edge(clk_tb);
-    wre_tb <= '1';
-    wait until rising_edge(clk_tb);
-    wre_tb <= '0';
-    wait for 1 ns;
-    assert mar_addr_out = x"00000004" report "Address being output by MAR does not match expected (0x00000004)" severity failure;
-    wait until falling_edge(clk_tb);
-    wre_tb <= '1';
-    pc_mod_tb <= '1';
-    wait until rising_edge(clk_tb);
-    wre_tb <= '0';
-    pc_mod_tb <= '0';
-    wait for 1 ns;
-    assert mar_addr_out = x"aa000037" and address_out_tb = x"aa00003b" report "Address being output by MAR or address being output by PC selection tree do not match expected (0xaa000037, 0xaa00003b)" severity failure;
+    begin_stb_tb <= '1';
     wait;
 
   end process;

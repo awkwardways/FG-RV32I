@@ -43,36 +43,38 @@ begin
 
   process(clk, wre, en, address, din)
   begin
-    if rising_edge(clk) and en = '1' then
-      if wre = '0' then
-        case mask is
-          when "00" => 
-            dout <= memory(to_integer(unsigned(address)));
+    if en = '1' then
+      if rising_edge(clk) then
+        if wre = '0' then
+          case mask is
+            when "00" => 
+              dout <= memory(to_integer(unsigned(address)));
 
-          when "01" => 
-            dout <= x"0000" & memory(to_integer(unsigned(address)))(15 downto 0);
+            when "01" => 
+              dout <= x"0000" & memory(to_integer(unsigned(address)))(15 downto 0);
 
-          when "10" => 
-            dout <= x"000000" & memory(to_integer(unsigned(address)))(7 downto 0);
-          
-          when others => dout <= (others => '0');
-        end case;
-      else
-        case mask is
-          when "00" => 
-            memory(to_integer(unsigned(address))) <= din;
+            when "10" => 
+              dout <= x"000000" & memory(to_integer(unsigned(address)))(7 downto 0);
+            
+            when others => dout <= (others => '0');
+          end case;
+        else
+          case mask is
+            when "00" => 
+              memory(to_integer(unsigned(address))) <= din;
 
-          when "01" => 
-            memory(to_integer(unsigned(address))) <= x"0000" & din(15 downto 0);
+            when "01" => 
+              memory(to_integer(unsigned(address))) <= x"0000" & din(15 downto 0);
 
-          when "10" => 
-            memory(to_integer(unsigned(address))) <= x"000000" & din(7 downto 0);
-          
-          when others => memory(to_integer(unsigned(address))) <= (others => '0');
-        end case;
-        dout <= (others => 'Z');
+            when "10" => 
+              memory(to_integer(unsigned(address))) <= x"000000" & din(7 downto 0);
+            
+            when others => memory(to_integer(unsigned(address))) <= (others => '0');
+          end case;
+          dout <= (others => 'Z');
+        end if;
       end if;
-    elsif rising_edge(clk) and en = '0' then
+    else
       dout <= (others => 'Z');
     end if;
   end process;
