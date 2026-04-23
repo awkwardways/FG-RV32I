@@ -111,6 +111,15 @@ begin
     wait until rising_edge(clk_tb);
     reset_tb <= '0';
     begin_stb_tb <= '1';
+    wait for 225 ns;
+    assert inst_out_tb = x"a8d08093" report "Instruction being output by the pipeline register is incorrect" severity failure;
+    wait for 150 ns;
+    assert inst_out_tb = x"a8d06193" report "Instruction being output by the pipeline register is incorrect" severity failure; 
+    begin_stb_tb <= '0';
+    wait for 150 ns;
+    assert inst_out_tb = x"41f1d293" report "Instruction being output by the pipeline register is incorrect" severity failure; 
+    wait for 200 ns;
+    assert inst_out_tb = x"41f1d293" report "Instruction being output by the pipeline register is incorrect" severity failure; 
     wait;
 
   end process;
