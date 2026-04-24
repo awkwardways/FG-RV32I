@@ -20,7 +20,7 @@ port(
 end entity memory_control_unit;
 
 architecture rtl of memory_control_unit is
-  type state_t is (idle, addressing, ack);
+  type state_t is (idle, addressing, write_idif, deassert);
   signal state : state_t := idle;
 begin
 
@@ -32,17 +32,21 @@ begin
       if reset = '0' then
         case state is
           when idle => 
-            wre_idif <= '0';
             mem_en <= begin_stb;
             state <= idle when begin_stb = '0' else addressing;
 
           when addressing => 
             state <= ack;
 
-          when ack => 
-            state <= idle;
+          when write_idif => 
+            state <= deassert;
             wre_idif <= '1';
+          
+          when deassert => 
+            wre_idif <= '0';
+            mem_en <= '0';
         end case;
+        
       else
         wre_idif <= '0';
         mem_en <= '0';

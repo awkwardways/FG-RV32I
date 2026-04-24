@@ -1,10 +1,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity pc_treeTB is
-end entity pc_treeTB;
+entity IFTB is
+end entity IFTB;
 
-architecture sim of pc_treeTB is
+architecture sim of IFTB is
   constant INSTR_WIDTH_TB : integer := 32;
   constant ADDR_WIDTH_TB  : integer := 32;
   constant DATA_WIDTH_TB  : integer := 32;
@@ -44,7 +44,7 @@ begin
     wre         => wre_idif_tb
   );
 
-  UUT: entity work.pc_tree(rtl)
+  PC_MUX_TREE: entity work.pc_tree(rtl)
   generic map(
     INSTR_WIDTH => INSTR_WIDTH_TB,
     ADDR_WIDTH => ADDR_WIDTH_TB
@@ -91,7 +91,7 @@ begin
     reset => reset_tb
   );
 
-  pipeline_reg: entity work.idif_register(rtl)
+  IDIF: entity work.idif_register(rtl)
   generic map(
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
