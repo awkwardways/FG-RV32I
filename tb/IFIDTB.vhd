@@ -118,24 +118,6 @@ begin
     instruction_out => inst_out_tb
   );
 
-  REGISTERS: entity work.registers_unit(rtl)
-  generic map(
-    REG_WIDTH => DATA_WIDTH_TB
-  )
-  port map(
-    clk => clk_tb,
-    reset => reset_tb,
-    rs1_en => '1',
-    rs2_en => inst_out_tb(5) and (not inst_out_tb(2)),
-    rs1_sel => inst_out_tb(19 downto 15),
-    rs2_sel => inst_out_tb(24 downto 20),
-    rd_sel => inst_out_tb(11 downto 7), 
-    rs1 => rs1_tb,
-    rs2 => rs2_tb,
-    rd => rd_tb,
-    wre => '0'
-  );
-
   UUT: entity work.immediate_generator(rtl)
   generic map(
     OPCODE_WIDTH => OPCODE_WIDTH_TB,
@@ -145,28 +127,6 @@ begin
   port map(
     immediate => imm_tb,
     instruction => inst_out_tb
-  );
-
-  IFEX: entity work.ifex_register(rtl)
-  generic map(
-    DATA_WIDTH => DATA_WIDTH_TB
-  )
-  port map(
-    clk => clk_tb,
-    reset => reset_tb,
-    wre => wre_idif_tb,
-    funct3_in => inst_out_tb(14 downto 12),
-    funct3_out => funct3_out_tb,
-    rs1_in => rs1_tb,
-    rs1_out => rs1_out_tb,
-    rs2_in => rs2_tb,
-    rs2_out => rs2_out_tb,
-    rd_in => inst_out_tb(11 downto 7),
-    rd_out => rd_out_tb,
-    imm_in => imm_tb,
-    imm_out => imm_out_tb,
-    alu_mod_in => inst_out_tb(30),
-    alu_mod_out => alu_mod_out_tb
   );
 
   stimuli: process

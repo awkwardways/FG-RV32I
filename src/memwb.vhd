@@ -1,0 +1,40 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity memwb_register is 
+generic(
+  DATA_WIDTH : integer := 32
+);
+port(
+  clk        : in std_logic;
+  reset      : in std_logic;
+  wre        : in std_logic;
+  data_in    : in std_logic_vector(DATA_WIDTH - 1 downto 0);
+  data_out   : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+  rd_in      : in std_logic_vector(4 downto 0);
+  rd_out     : out std_logic_vector(4 downto 0)
+);
+end entity memwb_register;
+
+architecture rtl of memwb_register is
+  signal data : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal rd : std_logic_vector(4 downto 0);
+begin
+
+  data_out <= data;
+  rd_out   <= rd;
+
+  process(clk, reset, wre, data_in, rd_in)
+  begin
+    if rising_edge(clk) then
+      if reset = '0' then 
+        data <= data_in when wre = '1' else data;
+        rd   <= rd_in when wre = '1' else rd;
+      else 
+        data <= (others => '0');
+        rd   <= (others => '0');
+      end if;
+    end if;
+  end process;
+
+end architecture rtl;

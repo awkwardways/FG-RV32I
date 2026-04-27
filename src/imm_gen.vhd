@@ -10,7 +10,7 @@ generic(
 port(
   immediate   : out std_logic_vector(IMM_WIDTH - 1 downto 0);
   instruction : in std_logic_vector(INST_WIDTH - 1 downto 0);
-  imm_found   : out std_logic;
+  imm_found   : out std_logic
 );
 end entity immediate_generator;
 

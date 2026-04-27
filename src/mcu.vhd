@@ -36,13 +36,14 @@ begin
             state <= idle when begin_stb = '0' else addressing;
 
           when addressing => 
-            state <= ack;
+            state <= write_idif;
 
           when write_idif => 
             state <= deassert;
             wre_idif <= '1';
           
           when deassert => 
+            state <= idle;
             wre_idif <= '0';
             mem_en <= '0';
         end case;
