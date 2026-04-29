@@ -18,7 +18,7 @@ architecture sim of coreTB is
   signal address_tb       : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"ffaa0127";
   signal offset_tb        : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"aa000033";
   signal mar_addr_out     : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0);
-  signal ram_dout_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal inst_mem_out_tb  : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal stall_tb         : std_logic;
   signal address_src_tb   : std_logic := '0';
   signal pc_mod_tb        : std_logic := '0';
@@ -75,26 +75,20 @@ begin
   )
   port map(
     address_out => address_out_tb,
-    stall => stall_tb,
     pc => mar_addr_out,
-    address => address_tb,
     offset => offset_tb,
-    address_src => address_src_tb,
     pc_mod => pc_mod_tb
   );
 
-  RAM: entity work.ram(rtl)
-  generic map( 
+  INSTRUCTION_MEM: entity work.instruction_mem(rtl)
+  generic map(
     ADDR_WIDTH => 12,
     DATA_WIDTH => DATA_WIDTH_TB
   )
   port map(
     address => mar_addr_out(13 downto 2),
-    din => (others => '0'),
-    dout => ram_dout_tb,
-    mask => mar_addr_out(1 downto 0),
+    data_out => inst_mem_out_tb,
     en => mem_en_tb,
-    wre => '0',
     clk => clk_tb
   );
 
@@ -106,7 +100,7 @@ begin
   port map(
     cpu_data_in => (others => '0'),
     cpu_data_out => open,
-    mem_data_in => ram_dout_tb,
+    mem_data_in => inst_mem_out_tb,
     mem_data_out => open,
     mem_en => mem_en_tb,
     begin_stb => begin_stb_tb,
@@ -125,7 +119,7 @@ begin
     clk             => clk_tb,
     pc_in           => mar_addr_out,
     pc_out          => pc_out_tb,
-    instruction_in  => ram_dout_tb,
+    instruction_in  => inst_mem_out_tb,
     instruction_out => inst_out_tb
   );
 
