@@ -11,7 +11,6 @@ architecture sim of ALUTB is
   signal b_tb      : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal c_tb      : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal op_select_tb : std_logic_vector(2 downto 0);
-  signal enable_tb : std_logic;
   signal modifier_tb  : std_logic; 
 begin
 
@@ -25,14 +24,12 @@ begin
     a => a_tb,
     b => b_tb,
     c => c_tb,
-    modifier => modifier_tb,
-    enable => enable_tb,
-    op_select => op_select_tb
+    op_select => op_select_tb,
+    modifier => modifier_tb
   );
 
   stimuli: process
   begin
-    enable_tb <= '0';
     
     --Addition
     op_select_tb <= "000";
@@ -59,22 +56,22 @@ begin
     a_tb <= 32x"14";
     b_tb <= x"fffffffe";
     wait for 2 ns;
-    assert c_tb <= 32x"1" report "Set less than signed not performed correctly" severity failure;
+    assert c_tb <= 32x"0" report "Set less than signed not performed correctly" severity failure;
     a_tb <= x"fffffffe";
     b_tb <= 32x"14";
     wait for 2 ns;
-    assert c_tb <= 32x"0" report "Set less than signed not performed correctly" severity failure;
+    assert c_tb <= 32x"1" report "Set less than signed not performed correctly" severity failure;
 
     --Set Less Than Unsigned
     op_select_tb <= "011";
     a_tb <= 32x"14";
     b_tb <= 32x"20";
     wait for 2 ns;
-    assert c_tb <= 32x"0" report "Set less than not performed correctly" severity failure;
+    assert c_tb <= 32x"1" report "Set less than not performed correctly" severity failure;
     a_tb <= 32x"20";
     b_tb <= 32x"14";
     wait for 2 ns;
-    assert c_tb <= 32x"1" report "Set less than not performed correctly" severity failure;
+    assert c_tb <= 32x"0" report "Set less than not performed correctly" severity failure;
 
     --XOR
     op_select_tb <= "100";
@@ -108,8 +105,7 @@ begin
     op_select_tb <= "111";
     wait for 2 ns;
     assert c_tb <= x"0a0a0a0a" report "AND not performed correctly" severity failure;
-    finish;
-
+    wait;
   end process;
 
 end architecture sim;

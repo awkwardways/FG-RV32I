@@ -27,6 +27,8 @@ architecture sim of IFTB is
   signal mem_en_tb      : std_logic;
   signal begin_stb_tb   : std_logic;
   signal wre_idif_tb    : std_logic;
+  signal next_pc_tb     : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal pc_tb          : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
 
 begin
 
@@ -37,11 +39,12 @@ begin
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
   port map(
+    next_pc     => next_pc_tb,
+    pc          => pc_tb,
     address_in  => address_out_tb,
-    address_out => mar_addr_out, 
     reset       => reset_tb,
     clk         => clk_tb,
-    wre         => wre_idif_tb
+    wre         => '1'
   );
 
   PC_MUX_TREE: entity work.pc_tree(rtl)
@@ -52,54 +55,34 @@ begin
   port map(
     address_out => address_out_tb,
     stall => stall_tb,
-    pc => mar_addr_out,
+    pc => next_pc_tb,
     address => address_tb,
     offset => offset_tb,
     address_src => address_src_tb,
     pc_mod => pc_mod_tb
   );
 
-  RAM: entity work.ram(rtl)
+  INSTRUCTION_MEM: entity work.instruction_mem(rtl)
   generic map( 
     ADDR_WIDTH => 12,
     DATA_WIDTH => DATA_WIDTH_TB
   )
   port map(
-    address => mar_addr_out(11 downto 0),
-    din => (others => '0'),
-    dout => ram_dout_tb,
-    mask => "00",
-    en => mem_en_tb,
-    wre => '0',
+    address => next_pc_tb(11 downto 0),
+    data_out => ram_dout_tb,
+    en => not reset_tb,
     clk => clk_tb
   );
 
-  MCU: entity work.memory_control_unit(rtl)
-  generic map(
-    ADDR_WIDTH => ADDR_WIDTH_TB,
-    DATA_WIDTH => DATA_WIDTH_TB
-  )
-  port map(
-    cpu_data_in => (others => '0'),
-    cpu_data_out => open,
-    mem_data_in => ram_dout_tb,
-    mem_data_out => open,
-    mem_en => mem_en_tb,
-    begin_stb => begin_stb_tb,
-    wre_idif => wre_idif_tb,
-    clk => clk_tb,
-    reset => reset_tb
-  );
-
-  IDIF: entity work.idif_register(rtl)
+  IDIF: entity work.ifid_register(rtl)
   generic map(
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
   port map(
-    wre             => wre_idif_tb,
+    wre             => '1',
     reset           => reset_tb,
     clk             => clk_tb,
-    pc_in           => mar_addr_out,
+    pc_in           => pc_tb,
     pc_out          => pc_out_tb,
     instruction_in  => ram_dout_tb,
     instruction_out => inst_out_tb
@@ -107,15 +90,14 @@ begin
 
   stimuli: process
   begin
+    mem_en_tb <= '1';
     reset_tb <= '1';
     wait until rising_edge(clk_tb);
     reset_tb <= '0';
-    begin_stb_tb <= '1';
     wait for 225 ns;
-    assert inst_out_tb = x"a8d08093" report "Instruction being output by the pipeline register is incorrect" severity failure;
+    assert inst_out_tb = x"a8d00093" report "Instruction being output by the pipeline register is incorrect" severity failure;
     wait for 150 ns;
     assert inst_out_tb = x"a8d06193" report "Instruction being output by the pipeline register is incorrect" severity failure; 
-    begin_stb_tb <= '0';
     wait for 150 ns;
     assert inst_out_tb = x"41f1d293" report "Instruction being output by the pipeline register is incorrect" severity failure; 
     wait for 200 ns;
