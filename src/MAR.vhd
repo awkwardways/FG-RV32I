@@ -21,7 +21,7 @@ begin
   next_pc <= next_address;
   pc      <= address;
 
-  process(clk, wre, address_in)
+  process(clk, wre, address_in, reset)
   begin
     if rising_edge(clk) then
       if reset = '0' then

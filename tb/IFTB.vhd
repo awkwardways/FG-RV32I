@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use std.env.finish;
 
 entity IFTB is
 end entity IFTB;
@@ -54,7 +55,6 @@ begin
   )
   port map(
     address_out => address_out_tb,
-    stall => stall_tb,
     pc => next_pc_tb,
     address => address_tb,
     offset => offset_tb,
@@ -68,7 +68,7 @@ begin
     DATA_WIDTH => DATA_WIDTH_TB
   )
   port map(
-    address => next_pc_tb(11 downto 0),
+    address => next_pc_tb(13 downto 2),
     data_out => ram_dout_tb,
     en => not reset_tb,
     clk => clk_tb
@@ -92,18 +92,19 @@ begin
   begin
     mem_en_tb <= '1';
     reset_tb <= '1';
-    wait until rising_edge(clk_tb);
+    wait for (CLK_PERIOD / 2);
     reset_tb <= '0';
-    wait for 225 ns;
+    wait for CLK_PERIOD;
+    wait for CLK_PERIOD;
+    wait for 1 ns;  -- wait for delta cycles to propagate
     assert inst_out_tb = x"a8d00093" report "Instruction being output by the pipeline register is incorrect" severity failure;
-    wait for 150 ns;
-    assert inst_out_tb = x"a8d06193" report "Instruction being output by the pipeline register is incorrect" severity failure; 
-    wait for 150 ns;
-    assert inst_out_tb = x"41f1d293" report "Instruction being output by the pipeline register is incorrect" severity failure; 
-    wait for 200 ns;
-    assert inst_out_tb = x"41f1d293" report "Instruction being output by the pipeline register is incorrect" severity failure; 
-    wait;
-
+    wait for CLK_PERIOD;
+    assert inst_out_tb = x"a9a0a113" and pc_out_tb = x"00000004" report "Instruction being output by the pipeline register is incorrect" severity failure; 
+    wait for CLK_PERIOD;
+    assert inst_out_tb = x"a7b13193" and pc_out_tb = x"00000008" report "Instruction being output by the pipeline register is incorrect" severity failure; 
+    wait for CLK_PERIOD;
+    assert inst_out_tb = x"8000c213" and pc_out_tb = x"0000000C" report "Instruction being output by the pipeline register is incorrect" severity failure; 
+    finish;
   end process;
 
 end architecture sim;
