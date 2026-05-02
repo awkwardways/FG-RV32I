@@ -15,19 +15,14 @@ architecture sim of IFTB is
   signal address_out_tb : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0);
   signal address_tb     : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"ffaa0127";
   signal offset_tb      : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"aa000033";
-  signal mar_addr_out   : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0);
   signal ram_dout_tb    : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal stall_tb       : std_logic;
   signal address_src_tb : std_logic := '0';
   signal pc_mod_tb      : std_logic := '0';
-  signal wre_tb         : std_logic := '0';
   signal reset_tb       : std_logic;
   signal clk_tb         : std_logic := '0';
   signal inst_out_tb    : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal pc_out_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal mem_en_tb      : std_logic;
-  signal begin_stb_tb   : std_logic;
-  signal wre_idif_tb    : std_logic;
   signal next_pc_tb     : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal pc_tb          : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
 
