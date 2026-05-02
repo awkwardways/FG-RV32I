@@ -1,2 +1,5 @@
-*
+src/*
+tb/*
 !*.vhd
+!*.hex
+work/*
