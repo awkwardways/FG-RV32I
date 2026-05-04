@@ -30,7 +30,9 @@ architecture sim of coretb is
   signal immediate_tb     : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal imm_found_tb     : std_logic;  
   signal funct3_out_tb    : std_logic_vector(2 downto 0);
+  signal reg_rs1_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal rs1_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal reg_rs2_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal rs2_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal rd_tb            : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal rd_sel_tb        : std_logic_vector(4 downto 0);
@@ -47,16 +49,22 @@ architecture sim of coretb is
   signal mem_rs2_out_tb   : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal res_out_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal mem_rd_out_tb    : std_logic_vector(4 downto 0);
-  signal rs1_sel_out_tb   : std_logic_vector(4 downto 0);
-  signal rs2_sel_out_tb   : std_logic_vector(4 downto 0);
-  signal fwd_rs1_tb       : std_logic;
-  signal fwd_rs2_tb       : std_logic;
+  signal ex_rs1_sel_out_tb   : std_logic_vector(4 downto 0);
+  signal ex_rs2_sel_out_tb   : std_logic_vector(4 downto 0);
+  signal ex_fwd_rs1_tb       : std_logic;
+  signal ex_fwd_rs2_tb       : std_logic;
+  signal id_fwd_rs1_tb       : std_logic;
+  signal id_fwd_rs2_tb       : std_logic;
+  signal ex_fwd_data_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal id_fwd_data_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
-  b_tb   <= rs2_out_tb when imm_found_out_tb = '0' and fwd_rs2_tb = '0' else
-            res_out_tb when imm_found_out_tb = '0' and fwd_rs2_tb = '1' else imm_out_tb; 
-  a_tb   <= rs1_out_tb when fwd_rs1_tb = '0' else res_out_tb;
+  b_tb   <= rs2_out_tb when imm_found_out_tb = '0' and ex_fwd_rs2_tb = '0' else
+            ex_fwd_data_tb when imm_found_out_tb = '0' and ex_fwd_rs2_tb = '1' else imm_out_tb; 
+  a_tb   <= rs1_out_tb when ex_fwd_rs1_tb = '0' else ex_fwd_data_tb;
+  rs1_tb <= reg_rs1_tb when id_fwd_rs1_tb = '0' else id_fwd_data_tb;
+  rs2_tb <= reg_rs2_tb when id_fwd_rs2_tb = '0' else id_fwd_data_tb;
 
 
   -- INSTRUCTION FETCH
@@ -100,7 +108,7 @@ begin
     pc_mod => pc_mod_tb
   );
 
-  IDIF: entity work.ifid_register(rtl)
+  IFID: entity work.ifid_register(rtl)
   generic map(
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
@@ -140,8 +148,8 @@ begin
     rs1_sel => inst_out_tb(19 downto 15),
     rs2_sel => inst_out_tb(24 downto 20),
     rd_sel => rd_sel_tb,
-    rs1 => rs1_tb,
-    rs2 => rs2_tb,
+    rs1 => reg_rs1_tb,
+    rs2 => reg_rs2_tb,
     rd => rd_tb,
     wre => '1'
   );
@@ -157,11 +165,11 @@ begin
     funct3_in => inst_out_tb(14 downto 12),
     funct3_out => funct3_out_tb,
     rs1_sel_in => inst_out_tb(19 downto 15),
-    rs1_sel_out => rs1_sel_out_tb,
+    rs1_sel_out => ex_rs1_sel_out_tb,
     rs1_in => rs1_tb,
     rs1_out => rs1_out_tb,
     rs2_sel_in => inst_out_tb(24 downto 20),
-    rs2_sel_out => rs2_sel_out_tb,
+    rs2_sel_out => ex_rs2_sel_out_tb,
     rs2_in => rs2_tb,
     rs2_out => rs2_out_tb,
     rd_in => inst_out_tb(11 downto 7),
@@ -231,11 +239,20 @@ begin
     DATA_WIDTH => DATA_WIDTH_TB
   )
   port map(
-    rs1_sel => rs1_sel_out_tb,
-    rs2_sel => rs2_sel_out_tb,
-    rd_sel  => mem_rd_out_tb,
-    fwd_rs1 => fwd_rs1_tb,
-    fwd_rs2 => fwd_rs2_tb
+    ex_rs1_sel    => ex_rs1_sel_out_tb,
+    id_rs1_sel    => inst_out_tb(19 downto 15),
+    ex_rs2_sel    => ex_rs2_sel_out_tb,
+    id_rs2_sel    => inst_out_tb(24 downto 20),
+    mem_rd_sel    => mem_rd_out_tb,
+    wb_rd_sel     => rd_sel_tb,
+    ex_fwd_rs1    => ex_fwd_rs1_tb,
+    ex_fwd_rs2    => ex_fwd_rs2_tb,
+    id_fwd_rs1    => id_fwd_rs1_tb,
+    id_fwd_rs2    => id_fwd_rs2_tb,
+    mem_data      => res_out_tb,
+    wb_data       => rd_tb,
+    ex_fwd_data   => ex_fwd_data_tb,
+    id_fwd_data   => id_fwd_data_tb
   );
 
   stimuli: process
