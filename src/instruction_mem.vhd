@@ -20,7 +20,7 @@ architecture rtl of instruction_mem is
   type memory_t is array (0 to 2 ** ADDR_WIDTH - 1) of std_logic_vector(31 downto 0);
 
   impure function init_mem return memory_t is
-    file init_file : text open read_mode is "../src/ram_init.hex";
+    file init_file : text open read_mode is "C:/Users/Franco/Documents/Codigo/VHDL/rv32i/src/ram_init.hex";
     variable buf : line;
     variable ram_content : memory_t;
     variable i : integer := 0;
