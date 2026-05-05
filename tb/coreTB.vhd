@@ -57,6 +57,15 @@ architecture sim of coretb is
   signal id_fwd_rs2_tb       : std_logic;
   signal ex_fwd_data_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal id_fwd_data_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal wb_data_in_tb    : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal data_dout_tb        : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal mem_wre_out_tb      : std_logic;
+  signal data_mem_en_tb      : std_logic;
+  signal data_wre_tb         : std_logic;
+  signal data_sel_out_tb     : std_logic;
+  signal wb_data_out_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal data_mask_tb        : std_logic_vector(2 downto 0);
+  signal op_select_tb        : std_logic_vector(2 downto 0);
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
@@ -65,6 +74,8 @@ begin
   a_tb   <= rs1_out_tb when ex_fwd_rs1_tb = '0' else ex_fwd_data_tb;
   rs1_tb <= reg_rs1_tb when id_fwd_rs1_tb = '0' else id_fwd_data_tb;
   rs2_tb <= reg_rs2_tb when id_fwd_rs2_tb = '0' else id_fwd_data_tb;
+  rd_tb  <= wb_data_out_tb when data_sel_out_tb = '0' else data_dout_tb;
+  op_select_tb <= funct3_out_tb when mem_op_out_tb = '0' else "000";
 
 
   -- INSTRUCTION FETCH
@@ -178,8 +189,10 @@ begin
     imm_out => imm_out_tb,
     imm_found_in => imm_found_tb,
     imm_found_out => imm_found_out_tb,
-    mem_op_in => '0',
+    mem_op_in => (not inst_out_tb(6)) and (not inst_out_tb(4)) and (not inst_out_tb(3)) and (not inst_out_tb(2)),
     mem_op_out => mem_op_out_tb,
+    mem_wre_in => inst_out_tb(5),
+    mem_wre_out => mem_wre_out_tb,
     alu_mod_in => inst_out_tb(30),
     alu_mod_out => alu_mod_out_tb
   );
@@ -212,12 +225,33 @@ begin
     res_in => c_tb,
     res_out => res_out_tb,
     mem_op_in => mem_op_out_tb,
-    mem_op_out => mem_op_out_tb,
+    mem_op_out => data_mem_en_tb,
+    data_wre_in => mem_wre_out_tb,
+    data_wre_out => data_wre_tb,
     rd_in => rd_out_tb,
-    rd_out => mem_rd_out_tb
+    rd_out => mem_rd_out_tb,
+    mask_in => funct3_out_tb,
+    mask_out => data_mask_tb
   );
 
   -- MEMORY ACCESS
+
+  DATA_MEM: entity work.ram(rtl)
+  generic map(
+    ADDR_WIDTH => 12,
+    DATA_WIDTH => DATA_WIDTH_TB,
+    WORD_WIDTH => 8
+  )
+  port map(
+    address => res_out_tb(11 downto 0),
+    din     => mem_rs2_out_tb,
+    dout    => data_dout_tb,
+    mask    => data_mask_tb(1 downto 0),
+    en      => data_mem_en_tb,
+    wre     => data_wre_tb,
+    clk     => clk_tb
+  );
+
   MEMWB: entity work.memwb_register(rtl)
   generic map(
     DATA_WIDTH => DATA_WIDTH_TB
@@ -227,7 +261,9 @@ begin
     reset => reset_tb,
     wre => '1',
     data_in => res_out_tb,
-    data_out => rd_tb,
+    data_out => wb_data_out_tb,
+    data_sel_in => data_mem_en_tb,
+    data_sel_out => data_sel_out_tb,
     rd_in => mem_rd_out_tb,
     rd_out => rd_sel_tb
   );

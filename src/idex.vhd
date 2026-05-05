@@ -27,6 +27,8 @@ port(
   imm_found_out : out std_logic;
   mem_op_in     : in std_logic;
   mem_op_out    : out std_logic;
+  mem_wre_in    : in std_logic;
+  mem_wre_out   : out std_logic;
   alu_mod_in    : in std_logic;
   alu_mod_out   : out std_logic
 );
@@ -43,6 +45,7 @@ architecture rtl of idex_register is
   signal alu_mod   : std_logic;
   signal imm_found : std_logic;
   signal mem_op    : std_logic;
+  signal mem_wre   : std_logic;
 begin
   
   funct3_out    <= funct3;
@@ -55,8 +58,9 @@ begin
   alu_mod_out   <= alu_mod;
   imm_found_out <= imm_found;
   mem_op_out    <= mem_op;
+  mem_wre_out  <= mem_wre;
 
-  process(clk, wre, reset, funct3_in, rs1_in, rs2_in, rd_in, imm_in, alu_mod_in, imm_found_in, mem_op_in, rs1_sel_in, rs2_sel_in)
+  process(clk, wre, reset, funct3_in, rs1_in, rs2_in, rd_in, imm_in, alu_mod_in, imm_found_in, mem_op_in, rs1_sel_in, rs2_sel_in, mem_wre_in)
   begin
     if rising_edge(clk) then
       if reset = '0' then
@@ -70,6 +74,7 @@ begin
         alu_mod   <= alu_mod_in when wre = '1' else alu_mod;
         imm_found <= imm_found_in when wre = '1' else imm_found;
         mem_op    <= mem_op_in when wre = '1' else mem_op;
+        mem_wre   <= mem_wre_in when wre = '1' else mem_wre;
       else
         funct3    <= (others => '0');
         rs1_sel   <= (others => '0');
@@ -81,6 +86,7 @@ begin
         alu_mod   <= '0';
         imm_found <= '0';
         mem_op    <= '0';
+        mem_wre   <= '0';
       end if;
     end if;
   end process;

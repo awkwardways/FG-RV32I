@@ -7,7 +7,8 @@ use std.textio.all;
 entity ram is
 generic(
   ADDR_WIDTH : integer := 12;
-  DATA_WIDTH : integer := 32
+  DATA_WIDTH : integer := 32;
+  WORD_WIDTH : integer := 8
 );
 port(
   address : in std_logic_vector(ADDR_WIDTH - 1 downto 0);
@@ -21,61 +22,49 @@ port(
 end entity ram;
 
 architecture rtl of ram is
-  type memory_t is array (0 to 2 ** ADDR_WIDTH - 1) of std_logic_vector(31 downto 0);
+  type memory_t is array (0 to 2 ** ADDR_WIDTH - 1) of std_logic_vector(7 downto 0);
 
-  impure function init_mem return memory_t is
-    file init_file : text open read_mode is "C:/Users/Franco/Documents/Codigo/VHDL/rv32i/src/ram_init.hex";
-    variable buf : line;
-    variable ram_content : memory_t;
-    variable i : integer := 0;
-  begin
-    while not endfile(init_file) loop
-      readline(init_file, buf);
-      hread(buf, ram_content(i));
-      i := i + 1;
-    end loop;
-    ram_content(i to 4095) := ((others => x"00000013"));
-    return ram_content;
-  end function;
-
-  signal memory : memory_t := init_mem;
+  signal memory : memory_t := (others => x"aa");
 begin
 
   process(clk, wre, en, address, din)
   begin
-    if en = '1' then
-      if rising_edge(clk) then
-        if wre = '0' then
-          case mask is
-            when "00" => 
-              dout <= memory(to_integer(unsigned(address)));
+    if rising_edge(clk) and en = '1' then
+      if wre = '0' then
+        case mask is
+          when "00" => 
+            dout <= x"000000" & memory(to_integer(unsigned(address)));
 
-            when "01" => 
-              dout <= x"0000" & memory(to_integer(unsigned(address)))(15 downto 0);
+          -- Half word access
+          when "01" => 
+            dout <= x"0000" & memory(to_integer(unsigned(address) + 1)) & memory(to_integer(unsigned(address)));
 
-            when "10" => 
-              dout <= x"000000" & memory(to_integer(unsigned(address)))(7 downto 0);
-            
-            when others => dout <= (others => '0');
-          end case;
-        else
-          case mask is
-            when "00" => 
-              memory(to_integer(unsigned(address))) <= din;
+          -- Word access
+          when "10" => 
+            dout <= memory(to_integer(unsigned(address) + 3)) & memory(to_integer(unsigned(address) + 2)) & memory(to_integer(unsigned(address) + 1)) & memory(to_integer(unsigned(address)));
+          
+          when others => dout <= (others => '0');
+        end case;
+      else
+        case mask is
+          when "00" => 
+            memory(to_integer(unsigned(address))) <= din(7 downto 0);
 
-            when "01" => 
-              memory(to_integer(unsigned(address))) <= x"0000" & din(15 downto 0);
+          when "01" => 
+            memory(to_integer(unsigned(address))) <= din(7 downto 0);
+            memory(to_integer(unsigned(address) + 1)) <= din(15 downto 8);
 
-            when "10" => 
-              memory(to_integer(unsigned(address))) <= x"000000" & din(7 downto 0);
-            
-            when others => memory(to_integer(unsigned(address))) <= (others => '0');
-          end case;
-          dout <= (others => 'Z');
-        end if;
+          when "10" => 
+            memory(to_integer(unsigned(address))) <= din(7 downto 0);
+            memory(to_integer(unsigned(address) + 1)) <= din(15 downto 8);
+            memory(to_integer(unsigned(address) + 2)) <= din(23 downto 16);
+            memory(to_integer(unsigned(address) + 3)) <= din(31 downto 24);
+          
+          when others => memory(to_integer(unsigned(address))) <= (others => '0');
+        end case;
       end if;
-    else
-      dout <= (others => 'Z');
+    elsif rising_edge(clk) and en = '0' then
+      dout <= (others => '0');
     end if;
   end process;
 
