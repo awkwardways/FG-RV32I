@@ -35,6 +35,7 @@ architecture sim of coretb is
   signal reg_rs2_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal rs2_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal rd_tb            : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal rd_in_tb         : std_logic_vector(4 downto 0);
   signal rd_sel_tb        : std_logic_vector(4 downto 0);
   signal rs1_out_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal rs2_out_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
@@ -67,6 +68,7 @@ architecture sim of coretb is
   signal data_mask_tb        : std_logic_vector(2 downto 0);
   signal op_select_tb        : std_logic_vector(2 downto 0);
   signal mem_data_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal sign_ext_out_tb     : std_logic_vector(2 downto 0);
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
@@ -77,6 +79,7 @@ begin
   rs2_tb <= reg_rs2_tb when id_fwd_rs2_tb = '0' else id_fwd_data_tb;
   rd_tb  <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
   op_select_tb <= funct3_out_tb when mem_op_out_tb = '0' else "000";
+  rd_in_tb <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
 
 
   -- INSTRUCTION FETCH
@@ -184,7 +187,7 @@ begin
     rs2_sel_out => ex_rs2_sel_out_tb,
     rs2_in => rs2_tb,
     rs2_out => rs2_out_tb,
-    rd_in => inst_out_tb(11 downto 7),
+    rd_in => rd_in_tb,
     rd_out => rd_out_tb,
     imm_in => immediate_tb,
     imm_out => imm_out_tb,
@@ -209,7 +212,7 @@ begin
     a => a_tb,
     b => b_tb,
     c => c_tb,
-    op_select => funct3_out_tb,
+    op_select => op_select_tb,
     modifier => alu_mod_out_tb
   );
 
@@ -252,17 +255,7 @@ begin
     wre     => data_wre_tb,
     clk     => clk_tb
   );
-
-  SIGN_EXT: entity work.sign_extender(rtl)
-  generic map(
-    DATA_WIDTH => DATA_WIDTH_TB
-  )
-  port map(
-    data_in => data_dout_tb,
-    data_out => mem_data_tb,
-    op => data_mask_tb 
-  );
-
+  
   MEMWB: entity work.memwb_register(rtl)
   generic map(
     DATA_WIDTH => DATA_WIDTH_TB
@@ -276,7 +269,19 @@ begin
     data_sel_in => data_mem_en_tb,
     data_sel_out => data_sel_out_tb,
     rd_in => mem_rd_out_tb,
-    rd_out => rd_sel_tb
+    rd_out => rd_sel_tb,
+    sign_ext_in => data_mask_tb,
+    sign_ext_out => sign_ext_out_tb
+  );
+      
+  SIGN_EXT: entity work.sign_extender(rtl)
+  generic map(
+    DATA_WIDTH => DATA_WIDTH_TB
+  )
+  port map(
+    data_in => data_dout_tb,
+    data_out => mem_data_tb,
+    op => sign_ext_out_tb 
   );
 
 
