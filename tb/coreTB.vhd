@@ -66,6 +66,7 @@ architecture sim of coretb is
   signal wb_data_out_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal data_mask_tb        : std_logic_vector(2 downto 0);
   signal op_select_tb        : std_logic_vector(2 downto 0);
+  signal mem_data_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
@@ -74,7 +75,7 @@ begin
   a_tb   <= rs1_out_tb when ex_fwd_rs1_tb = '0' else ex_fwd_data_tb;
   rs1_tb <= reg_rs1_tb when id_fwd_rs1_tb = '0' else id_fwd_data_tb;
   rs2_tb <= reg_rs2_tb when id_fwd_rs2_tb = '0' else id_fwd_data_tb;
-  rd_tb  <= wb_data_out_tb when data_sel_out_tb = '0' else data_dout_tb;
+  rd_tb  <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
   op_select_tb <= funct3_out_tb when mem_op_out_tb = '0' else "000";
 
 
@@ -250,6 +251,16 @@ begin
     en      => data_mem_en_tb,
     wre     => data_wre_tb,
     clk     => clk_tb
+  );
+
+  SIGN_EXT: entity work.sign_extender(rtl)
+  generic map(
+    DATA_WIDTH => DATA_WIDTH_TB
+  )
+  port map(
+    data_in => data_dout_tb,
+    data_out => mem_data_tb,
+    op => data_mask_tb 
   );
 
   MEMWB: entity work.memwb_register(rtl)
