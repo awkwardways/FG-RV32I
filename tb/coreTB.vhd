@@ -69,6 +69,8 @@ architecture sim of coretb is
   signal op_select_tb        : std_logic_vector(2 downto 0);
   signal mem_data_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal sign_ext_out_tb     : std_logic_vector(2 downto 0);
+  signal clear_ifid_tb       : std_logic;
+  signal alu_op_out_tb       : std_logic_vector(2 downto 0);
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
@@ -78,9 +80,20 @@ begin
   rs1_tb <= reg_rs1_tb when id_fwd_rs1_tb = '0' else id_fwd_data_tb;
   rs2_tb <= reg_rs2_tb when id_fwd_rs2_tb = '0' else id_fwd_data_tb;
   rd_tb  <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
-  op_select_tb <= funct3_out_tb when mem_op_out_tb = '0' else "000";
+  -- op_select_tb <= funct3_out_tb when mem_op_out_tb = '0' else "000";
   rd_in_tb <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
 
+  -- CONTROL UNIT
+  CONTROL_UNIT: entity work.control_unit(rtl)
+  generic map(
+    DATA_WIDTH => DATA_WIDTH_TB
+  )
+  port map(
+    inst       => inst_out_tb,
+    clear_ifid => clear_ifid_tb,
+    pc_offset  => pc_mod_tb,
+    alu_op     => op_select_tb
+  );
 
   -- INSTRUCTION FETCH
 
@@ -118,7 +131,7 @@ begin
     address_out => address_out_tb,
     pc => next_pc_tb,
     address => address_tb,
-    offset => offset_tb,
+    offset => imm_out_tb,
     address_src => address_src_tb,
     pc_mod => pc_mod_tb
   );
@@ -129,7 +142,7 @@ begin
   )
   port map(
     wre             => '1',
-    reset           => reset_tb,
+    reset           => reset_tb or clear_ifid_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
     pc_out          => pc_out_tb,
@@ -198,7 +211,9 @@ begin
     mem_wre_in => inst_out_tb(5),
     mem_wre_out => mem_wre_out_tb,
     alu_mod_in => inst_out_tb(30),
-    alu_mod_out => alu_mod_out_tb
+    alu_mod_out => alu_mod_out_tb,
+    alu_op_in  => op_select_tb,
+    alu_op_out => alu_op_out_tb
   );
 
   -- EXECUTE
@@ -212,7 +227,7 @@ begin
     a => a_tb,
     b => b_tb,
     c => c_tb,
-    op_select => op_select_tb,
+    op_select => alu_op_out_tb,
     modifier => alu_mod_out_tb
   );
 

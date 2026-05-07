@@ -30,7 +30,9 @@ port(
   mem_wre_in    : in std_logic;
   mem_wre_out   : out std_logic;
   alu_mod_in    : in std_logic;
-  alu_mod_out   : out std_logic
+  alu_mod_out   : out std_logic;
+  alu_op_in     : in std_logic_vector(2 downto 0);
+  alu_op_out    : out std_logic_vector(2 downto 0)
 );
 end entity idex_register;
 
@@ -46,6 +48,7 @@ architecture rtl of idex_register is
   signal imm_found : std_logic;
   signal mem_op    : std_logic;
   signal mem_wre   : std_logic;
+  signal alu_op    : std_logic_vector(2 downto 0);
 begin
   
   funct3_out    <= funct3;
@@ -58,9 +61,10 @@ begin
   alu_mod_out   <= alu_mod;
   imm_found_out <= imm_found;
   mem_op_out    <= mem_op;
-  mem_wre_out  <= mem_wre;
+  mem_wre_out   <= mem_wre;
+  alu_op_out    <= alu_op;
 
-  process(clk, wre, reset, funct3_in, rs1_in, rs2_in, rd_in, imm_in, alu_mod_in, imm_found_in, mem_op_in, rs1_sel_in, rs2_sel_in, mem_wre_in)
+  process(clk, wre, reset, funct3_in, rs1_in, rs2_in, rd_in, imm_in, alu_mod_in, imm_found_in, mem_op_in, rs1_sel_in, rs2_sel_in, mem_wre_in, alu_op_in)
   begin
     if rising_edge(clk) then
       if reset = '0' then
@@ -72,6 +76,7 @@ begin
         rd        <= rd_in when wre = '1' else rd;
         imm       <= imm_in when wre = '1' else imm;
         alu_mod   <= alu_mod_in when wre = '1' else alu_mod;
+        alu_op    <= alu_op_in when wre = '1' else alu_op;
         imm_found <= imm_found_in when wre = '1' else imm_found;
         mem_op    <= mem_op_in when wre = '1' else mem_op;
         mem_wre   <= mem_wre_in when wre = '1' else mem_wre;
@@ -84,6 +89,7 @@ begin
         rd        <= (others => '0');
         imm       <= (others => '0');
         alu_mod   <= '0';
+        alu_op    <= (others => '0');
         imm_found <= '0';
         mem_op    <= '0';
         mem_wre   <= '0';
