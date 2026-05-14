@@ -26,7 +26,8 @@ port(
   alu_op      : out std_logic_vector(2 downto 0);
   clear_ifid  : out std_logic;
   pc_offset   : out std_logic;
-  alu_mux     : out std_logic
+  alu_mux     : out std_logic;
+  addr_src    : out std_logic
 );
 end entity control_unit;
 
@@ -40,18 +41,22 @@ begin
         clear_ifid <= '1';
         pc_offset <= '1';
         alu_op <= "000";
+        addr_src <= not inst(3);
       
       when "0000011" | "0100011" => 
         alu_mux <= '0';
         clear_ifid <= '0';
         pc_offset <= '0';
         alu_op <= "000";
+        addr_src <= '0';
 
       when others => 
         alu_mux <= '0';
         clear_ifid <= '0'; 
         pc_offset <= '0';
         alu_op <= inst(14 downto 12);
+        addr_src <= '0';
+
     end case;
   end process;
 

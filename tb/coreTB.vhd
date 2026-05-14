@@ -113,7 +113,8 @@ begin
     alu_op      => op_select_tb,
     clear_ifid  => clear_ifid_tb,
     pc_offset   => pc_mod_tb,
-    alu_mux     => alu_mux_tb
+    alu_mux     => alu_mux_tb,
+    addr_src    => address_src_tb
   );
 
   -- INSTRUCTION FETCH
@@ -151,7 +152,7 @@ begin
   port map(
     address_out => address_out_tb,
     pc => tree_pc_tb,
-    address => address_tb,
+    address => c_tb,
     offset => immediate_tb,
     address_src => address_src_tb,
     pc_mod => pc_mod_tb
