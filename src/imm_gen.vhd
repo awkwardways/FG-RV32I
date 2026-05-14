@@ -42,6 +42,13 @@ begin
         immediate(31 downto 12) <= (others => instruction(31));
         imm_found <= '1';
 
+      when "1101111" => 
+        immediate(19) <= instruction(31);
+        immediate(10) <= instruction(20);
+        immediate(9 downto 0) <= instruction(30 downto 21);
+        immediate(18 downto 11) <= instruction(19 downto 12);
+        immediate(31 downto 20) <= (others => instruction(31));
+
       when others => immediate <= (others => '0'); imm_found <= '0';
     end case;
   end process;

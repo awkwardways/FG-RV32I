@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity coretb is 
 end entity coretb;
@@ -58,7 +59,7 @@ architecture sim of coretb is
   signal id_fwd_rs2_tb       : std_logic;
   signal ex_fwd_data_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal id_fwd_data_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal wb_data_in_tb    : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal wb_data_in_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal data_dout_tb        : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal mem_wre_out_tb      : std_logic;
   signal data_mem_en_tb      : std_logic;
@@ -71,17 +72,20 @@ architecture sim of coretb is
   signal sign_ext_out_tb     : std_logic_vector(2 downto 0);
   signal clear_ifid_tb       : std_logic;
   signal alu_op_out_tb       : std_logic_vector(2 downto 0);
+  signal alu_mux_out_tb      : std_logic;
+  signal idex_pc_out_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal alu_mux_tb          : std_logic;
+  signal res_in_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal tree_pc_tb          : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
-  b_tb   <= rs2_out_tb when imm_found_out_tb = '0' and ex_fwd_rs2_tb = '0' else
-            ex_fwd_data_tb when imm_found_out_tb = '0' and ex_fwd_rs2_tb = '1' else imm_out_tb; 
-  a_tb   <= rs1_out_tb when ex_fwd_rs1_tb = '0' else ex_fwd_data_tb;
-  rs1_tb <= reg_rs1_tb when id_fwd_rs1_tb = '0' else id_fwd_data_tb;
-  rs2_tb <= reg_rs2_tb when id_fwd_rs2_tb = '0' else id_fwd_data_tb;
+  -- rs1_tb <= reg_rs1_tb when id_fwd_rs1_tb = '0' else id_fwd_data_tb;
+  -- rs2_tb <= reg_rs2_tb when id_fwd_rs2_tb = '0' else id_fwd_data_tb;
   rd_tb  <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
-  -- op_select_tb <= funct3_out_tb when mem_op_out_tb = '0' else "000";
+  tree_pc_tb <= next_pc_tb when pc_mod_tb = '0' else pc_tb;
   rd_in_tb <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
+  res_in_tb <= c_tb when alu_mux_out_tb = '0' else std_logic_vector(unsigned(idex_pc_out_tb) + 4);
 
   -- CONTROL UNIT
   CONTROL_UNIT: entity work.control_unit(rtl)
@@ -89,10 +93,27 @@ begin
     DATA_WIDTH => DATA_WIDTH_TB
   )
   port map(
-    inst       => inst_out_tb,
-    clear_ifid => clear_ifid_tb,
-    pc_offset  => pc_mod_tb,
-    alu_op     => op_select_tb
+    ex_fwd_data => ex_fwd_data_tb,
+    id_fwd_data => id_fwd_data_tb,
+    rs2_out     => rs2_out_tb,
+    reg_rs2     => reg_rs2_tb,
+    rs1_out     => rs1_out_tb,
+    reg_rs1     => reg_rs1_tb,
+    imm         => imm_out_tb,
+    inst        => inst_out_tb,
+    rs1         => rs1_tb,
+    rs2         => rs2_tb,
+    alu_a       => a_tb,
+    alu_b       => b_tb,
+    imm_found   => imm_found_out_tb,
+    ex_fwd_rs2  => ex_fwd_rs2_tb,
+    id_fwd_rs2  => id_fwd_rs2_tb,
+    ex_fwd_rs1  => ex_fwd_rs1_tb,
+    id_fwd_rs1  => id_fwd_rs1_tb,
+    alu_op      => op_select_tb,
+    clear_ifid  => clear_ifid_tb,
+    pc_offset   => pc_mod_tb,
+    alu_mux     => alu_mux_tb
   );
 
   -- INSTRUCTION FETCH
@@ -129,9 +150,9 @@ begin
   )
   port map(
     address_out => address_out_tb,
-    pc => next_pc_tb,
+    pc => tree_pc_tb,
     address => address_tb,
-    offset => imm_out_tb,
+    offset => immediate_tb,
     address_src => address_src_tb,
     pc_mod => pc_mod_tb
   );
@@ -213,7 +234,11 @@ begin
     alu_mod_in => inst_out_tb(30),
     alu_mod_out => alu_mod_out_tb,
     alu_op_in  => op_select_tb,
-    alu_op_out => alu_op_out_tb
+    alu_op_out => alu_op_out_tb,
+    idex_pc_in => pc_out_tb,
+    idex_pc_out => idex_pc_out_tb,
+    alu_mux_in => alu_mux_tb,
+    alu_mux_out => alu_mux_out_tb
   );
 
   -- EXECUTE
@@ -241,7 +266,7 @@ begin
     wre => '1',
     rs2_in => rs2_out_tb,
     rs2_out => mem_rs2_out_tb,
-    res_in => c_tb,
+    res_in => res_in_tb,
     res_out => res_out_tb,
     mem_op_in => mem_op_out_tb,
     mem_op_out => data_mem_en_tb,
