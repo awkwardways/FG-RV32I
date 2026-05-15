@@ -38,7 +38,7 @@ begin
     case inst(6 downto 0) is
       when "1101111" | "1100111"=> 
         alu_mux <= '1';
-        clear_ifid <= '1';
+        clear_ifid <= inst(3);
         pc_offset <= inst(3);
         alu_op <= "000";
         addr_src <= not inst(3);

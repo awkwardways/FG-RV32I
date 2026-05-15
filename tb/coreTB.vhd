@@ -73,11 +73,12 @@ architecture sim of coretb is
   signal clear_ifid_tb       : std_logic;
   signal alu_op_out_tb       : std_logic_vector(2 downto 0);
   signal alu_mux_out_tb      : std_logic;
-  signal idex_pc_out_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal alu_mux_tb          : std_logic;
-  signal res_in_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal tree_pc_tb          : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal addr_src_out_tb     : std_logic;
+  signal idex_pc_out_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal alu_mux_tb             : std_logic;
+  signal res_in_tb              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal tree_pc_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal addr_src_out_tb        : std_logic;
+  signal clear_ifid_idex_out_tb : std_logic;
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
@@ -165,7 +166,7 @@ begin
   )
   port map(
     wre             => '1',
-    reset           => reset_tb or clear_ifid_tb or alu_mux_out_tb,
+    reset           => reset_tb or clear_ifid_tb or clear_ifid_idex_out_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
     pc_out          => pc_out_tb,
@@ -211,7 +212,7 @@ begin
   )
   port map(
     clk => clk_tb,
-    reset => reset_tb,
+    reset => reset_tb or clear_ifid_idex_out_tb,
     wre => '1',
     funct3_in => inst_out_tb(14 downto 12),
     funct3_out => funct3_out_tb,
@@ -279,7 +280,9 @@ begin
     rd_in => rd_out_tb,
     rd_out => mem_rd_out_tb,
     mask_in => funct3_out_tb,
-    mask_out => data_mask_tb
+    mask_out => data_mask_tb,
+    clear_ifid_idex_in => alu_mux_out_tb,
+    clear_ifid_idex_out => clear_ifid_idex_out_tb
   );
 
   -- MEMORY ACCESS
