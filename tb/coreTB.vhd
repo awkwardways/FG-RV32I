@@ -79,6 +79,7 @@ architecture sim of coretb is
   signal tree_pc_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal addr_src_out_tb        : std_logic;
   signal clear_ifid_idex_out_tb : std_logic;
+  signal addr_a_tb              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
@@ -114,9 +115,10 @@ begin
     id_fwd_rs1  => id_fwd_rs1_tb,
     alu_op      => op_select_tb,
     clear_ifid  => clear_ifid_tb,
-    pc_offset   => pc_mod_tb,
     alu_mux     => alu_mux_tb,
-    addr_src    => address_src_tb
+    addr_src    => address_src_tb,
+    pc          => pc_out_tb,
+    addr_a     => addr_a_tb
   );
 
   -- INSTRUCTION FETCH
@@ -154,10 +156,8 @@ begin
   port map(
     address_out => address_out_tb,
     pc => tree_pc_tb,
-    address => c_tb,
-    offset => immediate_tb,
-    address_src => addr_src_out_tb,
-    pc_mod => pc_mod_tb
+    address => std_logic_vector(unsigned(addr_a_tb) + unsigned(immediate_tb)),
+    address_src => address_src_tb
   );
 
   IFID: entity work.ifid_register(rtl)
@@ -166,7 +166,7 @@ begin
   )
   port map(
     wre             => '1',
-    reset           => reset_tb or clear_ifid_tb or clear_ifid_idex_out_tb,
+    reset           => reset_tb or clear_ifid_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
     pc_out          => pc_out_tb,
@@ -212,7 +212,7 @@ begin
   )
   port map(
     clk => clk_tb,
-    reset => reset_tb or clear_ifid_idex_out_tb,
+    reset => reset_tb,
     wre => '1',
     funct3_in => inst_out_tb(14 downto 12),
     funct3_out => funct3_out_tb,

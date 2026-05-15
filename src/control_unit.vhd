@@ -14,6 +14,7 @@ port(
   reg_rs1     : in std_logic_vector(DATA_WIDTH - 1 downto 0);
   imm         : in std_logic_vector(DATA_WIDTH - 1 downto 0);
   inst        : in std_logic_vector(DATA_WIDTH - 1 downto 0);
+  pc          : in std_logic_vector(DATA_WIDTH - 1 downto 0);
   rs1         : out std_logic_vector(DATA_WIDTH - 1 downto 0);
   rs2         : out std_logic_vector(DATA_WIDTH - 1 downto 0);
   alu_a       : out std_logic_vector(DATA_WIDTH - 1 downto 0);
@@ -25,35 +26,33 @@ port(
   id_fwd_rs1  : in std_logic;  
   alu_op      : out std_logic_vector(2 downto 0);
   clear_ifid  : out std_logic;
-  pc_offset   : out std_logic;
   alu_mux     : out std_logic;
-  addr_src    : out std_logic
+  addr_src    : out std_logic;
+  addr_a      : out std_logic_vector(DATA_WIDTH - 1 downto 0)
 );
 end entity control_unit;
 
 architecture rtl of control_unit is
 begin
-  process(inst)
+  process(inst, addr_src)
   begin
     case inst(6 downto 0) is
       when "1101111" | "1100111"=> 
         alu_mux <= '1';
         clear_ifid <= inst(3);
-        pc_offset <= inst(3);
         alu_op <= "000";
-        addr_src <= not inst(3);
+        addr_src <= '1';
+        addr_a <= reg_rs1 when inst(3) = '0' else pc;
       
       when "0000011" | "0100011" => 
         alu_mux <= '0';
         clear_ifid <= '0';
-        pc_offset <= '0';
         alu_op <= "000";
         addr_src <= '0';
 
       when others => 
         alu_mux <= '0';
         clear_ifid <= '0'; 
-        pc_offset <= '0';
         alu_op <= inst(14 downto 12);
         addr_src <= '0';
 
