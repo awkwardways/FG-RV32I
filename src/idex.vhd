@@ -36,7 +36,9 @@ port(
   alu_mux_in    : in std_logic;
   alu_mux_out   : out std_logic;
   idex_pc_in    : in std_logic_vector(DATA_WIDTH - 1 downto 0);
-  idex_pc_out   : out std_logic_vector(DATA_WIDTH - 1 downto 0)
+  idex_pc_out   : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+  addr_src_in   : in std_logic;
+  addr_src_out  : out std_logic
 );
 end entity idex_register;
 
@@ -55,6 +57,7 @@ architecture rtl of idex_register is
   signal alu_op    : std_logic_vector(2 downto 0);
   signal alu_mux   : std_logic;
   signal idex_pc   : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal addr_src  : std_logic;
 begin
   
   funct3_out    <= funct3;
@@ -71,11 +74,12 @@ begin
   alu_op_out    <= alu_op;
   alu_mux_out   <= alu_mux;
   idex_pc_out   <= idex_pc;
+  addr_src_out  <= addr_src;
 
   process(
     clk, wre, reset, funct3_in, rs1_in, rs2_in, rd_in, 
     imm_in, alu_mod_in, imm_found_in, mem_op_in, rs1_sel_in, 
-    rs2_sel_in, mem_wre_in, alu_op_in, alu_mux_in, idex_pc_in)
+    rs2_sel_in, mem_wre_in, alu_op_in, alu_mux_in, idex_pc_in, addr_src_in)
   begin
     if rising_edge(clk) then
       if reset = '0' then
@@ -93,6 +97,7 @@ begin
         mem_wre   <= mem_wre_in when wre = '1' else mem_wre;
         alu_mux   <= alu_mux_in when wre = '1' else alu_mux;
         idex_pc   <= idex_pc_in when wre = '1' else idex_pc;
+        addr_src  <= addr_src_in when wre = '1' else addr_src;
       else
         funct3    <= (others => '0');
         rs1_sel   <= (others => '0');
@@ -108,6 +113,7 @@ begin
         mem_wre   <= '0';
         alu_mux   <= '0';
         idex_pc   <= (others => '0');
+        addr_src  <= '0';
       end if;
     end if;
   end process;

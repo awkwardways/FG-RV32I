@@ -77,6 +77,7 @@ architecture sim of coretb is
   signal alu_mux_tb          : std_logic;
   signal res_in_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal tree_pc_tb          : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal addr_src_out_tb     : std_logic;
 begin
 
   clk_tb <= not clk_tb after CLK_PERIOD / 2;
@@ -154,7 +155,7 @@ begin
     pc => tree_pc_tb,
     address => c_tb,
     offset => immediate_tb,
-    address_src => address_src_tb,
+    address_src => addr_src_out_tb,
     pc_mod => pc_mod_tb
   );
 
@@ -164,7 +165,7 @@ begin
   )
   port map(
     wre             => '1',
-    reset           => reset_tb or clear_ifid_tb,
+    reset           => reset_tb or clear_ifid_tb or alu_mux_out_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
     pc_out          => pc_out_tb,
@@ -239,7 +240,9 @@ begin
     idex_pc_in => pc_out_tb,
     idex_pc_out => idex_pc_out_tb,
     alu_mux_in => alu_mux_tb,
-    alu_mux_out => alu_mux_out_tb
+    alu_mux_out => alu_mux_out_tb,
+    addr_src_in => address_src_tb,
+    addr_src_out => addr_src_out_tb
   );
 
   -- EXECUTE

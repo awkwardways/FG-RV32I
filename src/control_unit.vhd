@@ -39,7 +39,7 @@ begin
       when "1101111" | "1100111"=> 
         alu_mux <= '1';
         clear_ifid <= '1';
-        pc_offset <= '1';
+        pc_offset <= inst(3);
         alu_op <= "000";
         addr_src <= not inst(3);
       
@@ -63,7 +63,7 @@ begin
   B_PROCESS: process(imm_found, ex_fwd_rs2, rs2_out, ex_fwd_data, imm)
   begin
     alu_b <= rs2_out when imm_found = '0' and ex_fwd_rs2 = '0' else ex_fwd_data 
-                     when imm_found = '0' and ex_fwd_rs2 = '0' else imm;
+                     when imm_found = '0' and ex_fwd_rs2 = '1' else imm;
   end process B_PROCESS;
 
   A_PROCESS: process(ex_fwd_rs1, rs1_out, ex_fwd_data)

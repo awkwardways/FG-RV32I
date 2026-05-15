@@ -26,11 +26,11 @@ end entity forwarding_unit;
 architecture rtl of forwarding_unit is
 begin
   
-  ex_fwd_rs1  <= '1' when ex_rs1_sel = mem_rd_sel or ex_rs1_sel = wb_rd_sel else '0';
-  ex_fwd_rs2  <= '1' when ex_rs2_sel = mem_rd_sel or ex_rs2_sel = wb_rd_sel  else '0';
+  ex_fwd_rs1  <= '1' when (ex_rs1_sel = mem_rd_sel or ex_rs1_sel = wb_rd_sel) and ex_rs1_sel /= "00000" else '0';
+  ex_fwd_rs2  <= '1' when (ex_rs2_sel = mem_rd_sel or ex_rs2_sel = wb_rd_sel) and ex_rs2_sel /= "00000" else '0';
   ex_fwd_data <= mem_data when (ex_rs2_sel = mem_rd_sel or ex_rs1_sel = mem_rd_sel) else wb_data;
-  id_fwd_rs1 <= '1' when id_rs1_sel = wb_rd_sel else '0';
-  id_fwd_rs2 <= '1' when id_rs2_sel = wb_rd_sel else '0';
+  id_fwd_rs1 <= '1' when id_rs1_sel = wb_rd_sel and id_rs1_sel /= "00000" else '0';
+  id_fwd_rs2 <= '1' when id_rs2_sel = wb_rd_sel and id_rs2_sel /= "00000" else '0';
   id_fwd_data <= wb_data when (id_rs1_sel = wb_rd_sel or id_rs2_sel = wb_rd_sel) else (others => '0');
 
 end architecture;
