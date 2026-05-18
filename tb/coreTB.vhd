@@ -118,7 +118,7 @@ begin
     alu_mux     => alu_mux_tb,
     addr_src    => address_src_tb,
     pc          => pc_out_tb,
-    addr_a     => addr_a_tb
+    addr_a      => addr_a_tb
   );
 
   -- INSTRUCTION FETCH
@@ -131,7 +131,7 @@ begin
   port map(
     address => next_pc_tb(13 downto 2),
     data_out => ram_dout_tb,
-    en => not reset_tb,
+    en => not (reset_tb or clear_ifid_tb),
     clk => clk_tb
   );
 
