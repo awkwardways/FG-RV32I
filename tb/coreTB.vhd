@@ -25,11 +25,11 @@ architecture sim of coretb is
   signal clk_tb           : std_logic := '0';
   signal inst_out_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal pc_out_tb        : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal mem_en_tb        : std_logic;
   signal next_pc_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal pc_tb            : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal immediate_tb     : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal imm_found_tb     : std_logic;  
+  signal imm_sel_tb       : std_logic;
+  signal imm_sel_out_tb     : std_logic;  
   signal funct3_out_tb    : std_logic_vector(2 downto 0);
   signal reg_rs1_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal rs1_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
@@ -43,7 +43,6 @@ architecture sim of coretb is
   signal rd_out_tb        : std_logic_vector(4 downto 0);
   signal imm_out_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal imm_found_out_tb : std_logic;
-  signal mem_op_out_tb    : std_logic;
   signal alu_mod_out_tb   : std_logic;
   signal a_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal b_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
@@ -61,7 +60,6 @@ architecture sim of coretb is
   signal id_fwd_data_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal wb_data_in_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal data_dout_tb        : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal mem_wre_out_tb      : std_logic;
   signal data_mem_en_tb      : std_logic;
   signal data_wre_tb         : std_logic;
   signal data_sel_out_tb     : std_logic;
@@ -71,7 +69,7 @@ architecture sim of coretb is
   signal mem_data_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal sign_ext_out_tb     : std_logic_vector(2 downto 0);
   signal clear_ifid_tb       : std_logic;
-  signal alu_op_out_tb       : std_logic_vector(2 downto 0);
+  signal alu_op_tb           : std_logic_vector(2 downto 0);
   signal alu_mux_out_tb      : std_logic;
   signal idex_pc_out_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal alu_mux_tb             : std_logic;
@@ -80,46 +78,30 @@ architecture sim of coretb is
   signal addr_src_out_tb        : std_logic;
   signal clear_ifid_idex_out_tb : std_logic;
   signal addr_a_tb              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal fwd_rs1_tb             : std_logic_vector(1 downto 0);
+  signal fwd_rs2_tb             : std_logic_vector(1 downto 0);
+  signal next_pc_out_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal pc_plus_four_tb        : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal mem_en_tb              : std_logic;
+  signal mem_en_out_tb          : std_logic;
+  signal mem_wre_tb             : std_logic;
+  signal mem_wre_out_tb         : std_logic;
+  signal ex_outp_tb             : std_logic;
+  signal ex_outp_out_tb         : std_logic;
+  signal alu_op_sel_tb          : std_logic;
+  signal alu_op_sel_out_tb      : std_logic;
+  signal b_fwd_mux              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
 begin
 
-  clk_tb <= not clk_tb after CLK_PERIOD / 2;
-  -- rs1_tb <= reg_rs1_tb when id_fwd_rs1_tb = '0' else id_fwd_data_tb;
-  -- rs2_tb <= reg_rs2_tb when id_fwd_rs2_tb = '0' else id_fwd_data_tb;
-  rd_tb  <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
+  clk_tb     <= not clk_tb after CLK_PERIOD / 2;
+  rd_tb      <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
   tree_pc_tb <= next_pc_tb when pc_mod_tb = '0' else pc_tb;
-  rd_in_tb <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
-  res_in_tb <= c_tb when alu_mux_out_tb = '0' else std_logic_vector(unsigned(idex_pc_out_tb) + 4);
-
-  -- CONTROL UNIT
-  CONTROL_UNIT: entity work.control_unit(rtl)
-  generic map(
-    DATA_WIDTH => DATA_WIDTH_TB
-  )
-  port map(
-    ex_fwd_data => ex_fwd_data_tb,
-    id_fwd_data => id_fwd_data_tb,
-    rs2_out     => rs2_out_tb,
-    reg_rs2     => reg_rs2_tb,
-    rs1_out     => rs1_out_tb,
-    reg_rs1     => reg_rs1_tb,
-    imm         => imm_out_tb,
-    inst        => inst_out_tb,
-    rs1         => rs1_tb,
-    rs2         => rs2_tb,
-    alu_a       => a_tb,
-    alu_b       => b_tb,
-    imm_found   => imm_found_out_tb,
-    ex_fwd_rs2  => ex_fwd_rs2_tb,
-    id_fwd_rs2  => id_fwd_rs2_tb,
-    ex_fwd_rs1  => ex_fwd_rs1_tb,
-    id_fwd_rs1  => id_fwd_rs1_tb,
-    alu_op      => op_select_tb,
-    clear_ifid  => clear_ifid_tb,
-    alu_mux     => alu_mux_tb,
-    addr_src    => address_src_tb,
-    pc          => pc_out_tb,
-    addr_a      => addr_a_tb
-  );
+  rd_in_tb   <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
+  res_in_tb  <= c_tb when ex_outp_out_tb = '0' else pc_plus_four_tb;
+  a_tb       <= res_out_tb when fwd_rs1_tb = "01" else rd_tb when fwd_rs1_tb = "10" else rs1_out_tb;
+  b_fwd_mux  <= res_out_tb when fwd_rs2_tb = "01" else rd_tb when fwd_rs2_tb = "10" else rs2_out_tb;
+  b_tb       <= b_fwd_mux when imm_sel_out_tb = '0' else imm_out_tb;
+  alu_op_tb  <= funct3_out_tb when alu_op_sel_out_tb = '0' else "000";
 
   -- INSTRUCTION FETCH
 
@@ -131,7 +113,7 @@ begin
   port map(
     address => next_pc_tb(13 downto 2),
     data_out => ram_dout_tb,
-    en => not (reset_tb or clear_ifid_tb),
+    en => not (reset_tb),
     clk => clk_tb
   );
 
@@ -166,15 +148,27 @@ begin
   )
   port map(
     wre             => '1',
-    reset           => reset_tb or clear_ifid_tb,
+    reset           => reset_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
     pc_out          => pc_out_tb,
+    next_pc_in      => next_pc_tb,
+    next_pc_out     => next_pc_out_tb,
     instruction_in  => ram_dout_tb,
     instruction_out => inst_out_tb
   );
 
   -- INSTRUCTION DECODE
+
+  CONTROL_UNIT: entity work.control_unit(rtl)
+  port map(
+    opcode     => inst_out_tb(6 downto 0),
+    alu_op_sel => alu_op_sel_tb,
+    mem_en     => mem_en_tb,
+    mem_wre    => mem_wre_tb,
+    imm_sel    => imm_sel_tb,
+    ex_outp    => ex_outp_tb 
+  );
 
   IMM: entity work.immediate_generator(rtl)
   generic map(
@@ -184,8 +178,7 @@ begin
   )
   port map(
     immediate => immediate_tb,
-    instruction => inst_out_tb,
-    imm_found => imm_found_tb
+    instruction => inst_out_tb
   );
 
   REG_FILE: entity work.registers_unit(rtl)
@@ -200,8 +193,8 @@ begin
     rs1_sel => inst_out_tb(19 downto 15),
     rs2_sel => inst_out_tb(24 downto 20),
     rd_sel => rd_sel_tb,
-    rs1 => reg_rs1_tb,
-    rs2 => reg_rs2_tb,
+    rs1 => rs1_tb,
+    rs2 => rs2_tb,
     rd => rd_tb,
     wre => '1'
   );
@@ -211,39 +204,39 @@ begin
     DATA_WIDTH => DATA_WIDTH_TB
   )
   port map(
-    clk => clk_tb,
-    reset => reset_tb,
-    wre => '1',
-    funct3_in => inst_out_tb(14 downto 12),
-    funct3_out => funct3_out_tb,
-    rs1_sel_in => inst_out_tb(19 downto 15),
-    rs1_sel_out => ex_rs1_sel_out_tb,
-    rs1_in => rs1_tb,
-    rs1_out => rs1_out_tb,
-    rs2_sel_in => inst_out_tb(24 downto 20),
-    rs2_sel_out => ex_rs2_sel_out_tb,
-    rs2_in => rs2_tb,
-    rs2_out => rs2_out_tb,
-    rd_in => rd_in_tb,
-    rd_out => rd_out_tb,
-    imm_in => immediate_tb,
-    imm_out => imm_out_tb,
-    imm_found_in => imm_found_tb,
-    imm_found_out => imm_found_out_tb,
-    mem_op_in => (not inst_out_tb(6)) and (not inst_out_tb(4)) and (not inst_out_tb(3)) and (not inst_out_tb(2)),
-    mem_op_out => mem_op_out_tb,
-    mem_wre_in => inst_out_tb(5),
-    mem_wre_out => mem_wre_out_tb,
-    alu_mod_in => inst_out_tb(30),
-    alu_mod_out => alu_mod_out_tb,
-    alu_op_in  => op_select_tb,
-    alu_op_out => alu_op_out_tb,
-    idex_pc_in => pc_out_tb,
-    idex_pc_out => idex_pc_out_tb,
-    alu_mux_in => alu_mux_tb,
-    alu_mux_out => alu_mux_out_tb,
-    addr_src_in => address_src_tb,
-    addr_src_out => addr_src_out_tb
+    clk              => clk_tb,
+    reset            => reset_tb,
+    wre              => '1',
+    funct3_in        => inst_out_tb(14 downto 12),
+    funct3_out       => funct3_out_tb,
+    rs1_sel_in       => inst_out_tb(19 downto 15),
+    rs1_sel_out      => ex_rs1_sel_out_tb,
+    rs1_in           => rs1_tb,
+    rs1_out          => rs1_out_tb,
+    rs2_sel_in       => inst_out_tb(24 downto 20),
+    rs2_sel_out      => ex_rs2_sel_out_tb,
+    rs2_in           => rs2_tb,
+    rs2_out          => rs2_out_tb,
+    rd_in            => rd_in_tb,
+    rd_out           => rd_out_tb,
+    imm_in           => immediate_tb,
+    imm_out          => imm_out_tb, 
+    alu_mod_in       => inst_out_tb(30),
+    alu_mod_out      => alu_mod_out_tb,
+    idex_pc_in       => pc_out_tb,
+    idex_pc_out      => idex_pc_out_tb,
+    pc_plus_four_in  => next_pc_out_tb,
+    pc_plus_four_out => pc_plus_four_tb,
+    imm_sel_in       => imm_sel_tb,
+    imm_sel_out      => imm_sel_out_tb, 
+    mem_en_in        => mem_en_tb,
+    mem_en_out       => mem_en_out_tb,
+    mem_wre_in       => mem_wre_tb,
+    mem_wre_out      => mem_wre_out_tb,
+    ex_outp_in       => ex_outp_tb,
+    ex_outp_out      => ex_outp_out_tb,
+    alu_op_sel_in    => alu_op_sel_tb,
+    alu_op_sel_out   => alu_op_sel_out_tb 
   );
 
   -- EXECUTE
@@ -257,7 +250,7 @@ begin
     a => a_tb,
     b => b_tb,
     c => c_tb,
-    op_select => alu_op_out_tb,
+    op_select => alu_op_tb,
     modifier => alu_mod_out_tb
   );
 
@@ -273,16 +266,14 @@ begin
     rs2_out => mem_rs2_out_tb,
     res_in => res_in_tb,
     res_out => res_out_tb,
-    mem_op_in => mem_op_out_tb,
+    mem_op_in => mem_en_out_tb,
     mem_op_out => data_mem_en_tb,
     data_wre_in => mem_wre_out_tb,
     data_wre_out => data_wre_tb,
     rd_in => rd_out_tb,
     rd_out => mem_rd_out_tb,
     mask_in => funct3_out_tb,
-    mask_out => data_mask_tb,
-    clear_ifid_idex_in => alu_mux_out_tb,
-    clear_ifid_idex_out => clear_ifid_idex_out_tb
+    mask_out => data_mask_tb
   );
 
   -- MEMORY ACCESS
@@ -338,20 +329,12 @@ begin
     DATA_WIDTH => DATA_WIDTH_TB
   )
   port map(
-    ex_rs1_sel    => ex_rs1_sel_out_tb,
-    id_rs1_sel    => inst_out_tb(19 downto 15),
-    ex_rs2_sel    => ex_rs2_sel_out_tb,
-    id_rs2_sel    => inst_out_tb(24 downto 20),
-    mem_rd_sel    => mem_rd_out_tb,
-    wb_rd_sel     => rd_sel_tb,
-    ex_fwd_rs1    => ex_fwd_rs1_tb,
-    ex_fwd_rs2    => ex_fwd_rs2_tb,
-    id_fwd_rs1    => id_fwd_rs1_tb,
-    id_fwd_rs2    => id_fwd_rs2_tb,
-    mem_data      => res_out_tb,
-    wb_data       => rd_tb,
-    ex_fwd_data   => ex_fwd_data_tb,
-    id_fwd_data   => id_fwd_data_tb
+    rs1_sel    => ex_rs1_sel_out_tb,
+    rs2_sel    => ex_rs2_sel_out_tb,
+    mem_rd_sel => mem_rd_out_tb,
+    wb_rd_sel  => rd_sel_tb,
+    fwd_rs1    => fwd_rs1_tb,
+    fwd_rs2    => fwd_rs2_tb 
   );
 
   stimuli: process

@@ -33,9 +33,6 @@ architecture rtl of registers_unit is
   signal registers : registers_t := (others => (others => '0'));
 begin
 
-  rs1 <= registers(to_integer(unsigned(rs1_sel))) and rs1_en when rs1_sel /= "00000" else (others => '0');
-  rs2 <= registers(to_integer(unsigned(rs2_sel))) and rs2_en when rs2_sel /= "00000" else (others => '0');
-
   process(clk, rd_sel, wre)
   begin
     if rising_edge(clk) and reset = '0' then
@@ -46,5 +43,14 @@ begin
       registers <= (others => (others => '0'));
     end if; 
   end process;
+
+  read_regs: process(rs1_sel, rs1_en, rs2_sel, rs2_en, rd, rd_sel)
+  begin
+    rs1 <= registers(to_integer(unsigned(rs1_sel))) and rs1_en when (rs1_sel /= "00000" and rs1_sel /= rd_sel) else 
+          rd and rs1_en when (rs1_sel = rd_sel and rs1_sel /= "00000") else (others => '0');
+
+    rs2 <= registers(to_integer(unsigned(rs2_sel))) and rs2_en when (rs2_sel /= "00000" and rs2_sel /= rd_sel) else 
+          rd and rs2_en when (rs2_sel = rd_sel and rs2_sel /= "00000") else (others => '0');
+  end process read_regs;
 
 end architecture rtl;

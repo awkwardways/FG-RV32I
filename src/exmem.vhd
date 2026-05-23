@@ -20,9 +20,7 @@ port(
   mask_in      : in std_logic_vector(2 downto 0);
   mask_out     : out std_logic_vector(2 downto 0);
   rd_in        : in std_logic_vector(4 downto 0);
-  rd_out       : out std_logic_vector(4 downto 0);
-  clear_ifid_idex_in : in std_logic;
-  clear_ifid_idex_out : out std_logic
+  rd_out       : out std_logic_vector(4 downto 0)
 );
 end entity exmem_register;
 
@@ -33,7 +31,6 @@ architecture rtl of exmem_register is
   signal rd : std_logic_vector(4 downto 0);
   signal data_wre : std_logic;
   signal mask : std_logic_vector(2 downto 0);
-  signal clear_ifid_idex : std_logic;
 begin
 
   rs2_out <= rs2;
@@ -42,9 +39,8 @@ begin
   rd_out <= rd;
   data_wre_out <= data_wre;
   mask_out <= mask;
-  clear_ifid_idex_out <= clear_ifid_idex;
 
-  process(clk, reset, wre, rs2_in, res_in, mem_op_in, rd_in, mask_in, clear_ifid_idex_in)
+  process(clk, reset, wre, rs2_in, res_in, mem_op_in, rd_in, mask_in)
   begin
     if rising_edge(clk) then
       if reset = '0' then
@@ -54,7 +50,6 @@ begin
         rd <= rd_in when wre = '1' else rd;
         data_wre <= data_wre_in when wre = '1' else data_wre;
         mask <= mask_in when wre = '1' else mask;
-        clear_ifid_idex <= clear_ifid_idex_in when wre = '1' else clear_ifid_idex;
       else
         rs2 <= (others => '0');
         res <= (others => '0');
@@ -62,7 +57,6 @@ begin
         rd <= (others => '0');
         data_wre <= '0';
         mask <= (others => '0');
-        clear_ifid_idex <= '0';
       end if;
     end if;
   end process;
