@@ -19,7 +19,7 @@ architecture sim of coretb is
   signal address_tb       : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"ffaa0127";
   signal offset_tb        : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"aa000033";
   signal ram_dout_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal address_src_tb   : std_logic := '0';
+  signal addr_src_tb      : std_logic;
   signal pc_mod_tb        : std_logic := '0';
   signal reset_tb         : std_logic;
   signal clk_tb           : std_logic := '0';
@@ -75,7 +75,6 @@ architecture sim of coretb is
   signal alu_mux_tb             : std_logic;
   signal res_in_tb              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal tree_pc_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal addr_src_out_tb        : std_logic;
   signal clear_ifid_idex_out_tb : std_logic;
   signal addr_a_tb              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal fwd_rs1_tb             : std_logic_vector(1 downto 0);
@@ -91,17 +90,40 @@ architecture sim of coretb is
   signal alu_op_sel_tb          : std_logic;
   signal alu_op_sel_out_tb      : std_logic;
   signal b_fwd_mux              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal imm_addr_src_tb        : std_logic;
+  signal ifid_wre_tb            : std_logic;
+  signal ifid_reset_tb          : std_logic;
+  signal idex_reset_tb          : std_logic;
+  signal imm_addr               : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal imm_addr_src_out_tb    : std_logic;
+  signal ifid_wre_out_tb        : std_logic;
+  signal ifid_reset_out_tb      : std_logic;
+  signal idex_reset_out_tb      : std_logic;
+  signal addr_src_out_tb        : std_logic;
+  signal cu_alu_op_tb           : std_logic_vector(2 downto 0);
+  signal cu_alu_op_out_tb       : std_logic_vector(2 downto 0);
+  signal branch_tb              : std_logic;
+  signal branch_out_tb          : std_logic;
+  signal neg_alu_tb             : std_logic;
+  signal neg_alu_out_tb         : std_logic;
+  signal load_address_tb        : std_logic;
+  signal branch_taken_tb        : std_logic;
+  signal nc_tb                  : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal alu_mod_tb             : std_logic;
 begin
 
-  clk_tb     <= not clk_tb after CLK_PERIOD / 2;
-  rd_tb      <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
-  tree_pc_tb <= next_pc_tb when pc_mod_tb = '0' else pc_tb;
-  rd_in_tb   <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
-  res_in_tb  <= c_tb when ex_outp_out_tb = '0' else pc_plus_four_tb;
-  a_tb       <= res_out_tb when fwd_rs1_tb = "01" else rd_tb when fwd_rs1_tb = "10" else rs1_out_tb;
-  b_fwd_mux  <= res_out_tb when fwd_rs2_tb = "01" else rd_tb when fwd_rs2_tb = "10" else rs2_out_tb;
-  b_tb       <= b_fwd_mux when imm_sel_out_tb = '0' else imm_out_tb;
-  alu_op_tb  <= funct3_out_tb when alu_op_sel_out_tb = '0' else "000";
+  clk_tb          <= not clk_tb after CLK_PERIOD / 2;
+  rd_tb           <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
+  tree_pc_tb      <= next_pc_tb when pc_mod_tb = '0' else pc_tb;
+  rd_in_tb        <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
+  res_in_tb       <= c_tb when ex_outp_out_tb = '0' else pc_plus_four_tb;
+  a_tb            <= res_out_tb when fwd_rs1_tb = "01" else rd_tb when fwd_rs1_tb = "10" else rs1_out_tb;
+  b_fwd_mux       <= res_out_tb when fwd_rs2_tb = "01" else rd_tb when fwd_rs2_tb = "10" else rs2_out_tb;
+  b_tb            <= b_fwd_mux when imm_sel_out_tb = '0' else imm_out_tb;
+  alu_op_tb       <= funct3_out_tb when alu_op_sel_out_tb = '0' else cu_alu_op_out_tb;
+  imm_addr        <= idex_pc_out_tb when imm_addr_src_out_tb = '0' else rs1_out_tb;
+  branch_taken_tb <= c_tb(0) when neg_alu_out_tb = '0' else nc_tb(0);
+  load_address_tb <= addr_src_out_tb when branch_out_tb = '0' else branch_taken_tb;
 
   -- INSTRUCTION FETCH
 
@@ -113,7 +135,7 @@ begin
   port map(
     address => next_pc_tb(13 downto 2),
     data_out => ram_dout_tb,
-    en => not (reset_tb),
+    en => not reset_tb,
     clk => clk_tb
   );
 
@@ -138,8 +160,8 @@ begin
   port map(
     address_out => address_out_tb,
     pc => tree_pc_tb,
-    address => std_logic_vector(unsigned(addr_a_tb) + unsigned(immediate_tb)),
-    address_src => address_src_tb
+    address => std_logic_vector(unsigned(imm_addr) + unsigned(imm_out_tb)),
+    address_src => load_address_tb
   );
 
   IFID: entity work.ifid_register(rtl)
@@ -147,8 +169,8 @@ begin
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
   port map(
-    wre             => '1',
-    reset           => reset_tb,
+    wre             => ifid_wre_out_tb,
+    reset           => reset_tb or ifid_reset_out_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
     pc_out          => pc_out_tb,
@@ -162,12 +184,24 @@ begin
 
   CONTROL_UNIT: entity work.control_unit(rtl)
   port map(
-    opcode     => inst_out_tb(6 downto 0),
-    alu_op_sel => alu_op_sel_tb,
-    mem_en     => mem_en_tb,
-    mem_wre    => mem_wre_tb,
-    imm_sel    => imm_sel_tb,
-    ex_outp    => ex_outp_tb 
+    opcode       => inst_out_tb(6 downto 0),
+    funct_3      => inst_out_tb(14 downto 12),
+    branch_taken => branch_taken_tb,
+    amod         => inst_out_tb(30),
+    alu_op_sel   => alu_op_sel_tb,
+    mem_en       => mem_en_tb,
+    mem_wre      => mem_wre_tb,
+    imm_sel      => imm_sel_tb,
+    ex_outp      => ex_outp_tb ,
+    imm_addr_src => imm_addr_src_tb,
+    ifid_wre     => ifid_wre_tb,
+    ifid_reset   => ifid_reset_tb,
+    idex_reset   => idex_reset_tb,
+    addr_src     => addr_src_tb,
+    alu_op       => cu_alu_op_tb,
+    branch       => branch_tb,
+    neg_alu      => neg_alu_tb,
+    alu_mod      => alu_mod_tb
   );
 
   IMM: entity work.immediate_generator(rtl)
@@ -205,7 +239,7 @@ begin
   )
   port map(
     clk              => clk_tb,
-    reset            => reset_tb,
+    reset            => reset_tb or idex_reset_out_tb,
     wre              => '1',
     funct3_in        => inst_out_tb(14 downto 12),
     funct3_out       => funct3_out_tb,
@@ -221,7 +255,7 @@ begin
     rd_out           => rd_out_tb,
     imm_in           => immediate_tb,
     imm_out          => imm_out_tb, 
-    alu_mod_in       => inst_out_tb(30),
+    alu_mod_in       => alu_mod_tb,
     alu_mod_out      => alu_mod_out_tb,
     idex_pc_in       => pc_out_tb,
     idex_pc_out      => idex_pc_out_tb,
@@ -236,7 +270,23 @@ begin
     ex_outp_in       => ex_outp_tb,
     ex_outp_out      => ex_outp_out_tb,
     alu_op_sel_in    => alu_op_sel_tb,
-    alu_op_sel_out   => alu_op_sel_out_tb 
+    alu_op_sel_out   => alu_op_sel_out_tb,
+    imm_addr_src_in  => imm_addr_src_tb,
+    imm_addr_src_out => imm_addr_src_out_tb,
+    ifid_wre_in      => ifid_wre_tb,
+    ifid_wre_out     => ifid_wre_out_tb,
+    ifid_reset_in    => ifid_reset_tb,
+    ifid_reset_out   => ifid_reset_out_tb,
+    idex_reset_in    => idex_reset_tb,
+    idex_reset_out   => idex_reset_out_tb,
+    addr_src_in      => addr_src_tb,
+    addr_src_out     => addr_src_out_tb,
+    cu_alu_op_in     => cu_alu_op_tb,
+    cu_alu_op_out    => cu_alu_op_out_tb,
+    branch_in        => branch_tb,
+    branch_out       => branch_out_tb,
+    neg_alu_in       => neg_alu_tb,
+    neg_alu_out      => neg_alu_out_tb
   );
 
   -- EXECUTE
@@ -250,6 +300,7 @@ begin
     a => a_tb,
     b => b_tb,
     c => c_tb,
+    nc => nc_tb,
     op_select => alu_op_tb,
     modifier => alu_mod_out_tb
   );

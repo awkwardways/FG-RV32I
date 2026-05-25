@@ -9,9 +9,10 @@ entity ALU is
     C_WIDTH         : integer := 32
   );
   port (
-    a      : in std_logic_vector(A_WIDTH - 1 downto 0);
-    b      : in std_logic_vector(B_WIDTH - 1 downto 0);
-    c      : out std_logic_vector(C_WIDTH - 1 downto 0);
+    a         : in std_logic_vector(A_WIDTH - 1 downto 0);
+    b         : in std_logic_vector(B_WIDTH - 1 downto 0);
+    c         : out std_logic_vector(C_WIDTH - 1 downto 0);
+    nc        : out std_logic_vector(C_WIDTH - 1 downto 0);
     op_select : in std_logic_vector(2 downto 0);
     modifier  : in std_logic
   );
@@ -20,6 +21,8 @@ end entity ALU;
 architecture rtl of ALU is
 begin
 
+  nc <= not c;
+  
   process(op_select, a, b)
   begin
     case op_select is 
@@ -36,7 +39,11 @@ begin
         c <= 32x"1" when unsigned(a) < unsigned(b) else 32x"0";
       
       when "100" => 
-        c <= a xor b;
+        if modifier = '0' then
+          c <= a xor b;
+        else 
+          c <= 32x"1" when a /= b else 32x"0";
+        end if;
 
       when "101" => 
         c <= std_logic_vector(shift_right(unsigned(a), to_integer(unsigned(b(4 downto 0))))) when modifier = '0' else std_logic_vector(shift_right(signed(a), to_integer(unsigned(b(4 downto 0)))));
