@@ -110,6 +110,7 @@ architecture sim of coretb is
   signal branch_taken_tb        : std_logic;
   signal nc_tb                  : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal alu_mod_tb             : std_logic;
+  signal branch_reset_tb        : std_logic;
 begin
 
   clk_tb          <= not clk_tb after CLK_PERIOD / 2;
@@ -169,8 +170,8 @@ begin
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
   port map(
-    wre             => ifid_wre_out_tb,
-    reset           => reset_tb or ifid_reset_out_tb,
+    wre             => ifid_wre_out_tb or (not branch_reset_tb),
+    reset           => reset_tb or ifid_reset_out_tb or branch_reset_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
     pc_out          => pc_out_tb,
@@ -187,6 +188,7 @@ begin
     opcode       => inst_out_tb(6 downto 0),
     funct_3      => inst_out_tb(14 downto 12),
     branch_taken => branch_taken_tb,
+    branch_in    => branch_out_tb,
     amod         => inst_out_tb(30),
     alu_op_sel   => alu_op_sel_tb,
     mem_en       => mem_en_tb,
@@ -197,6 +199,7 @@ begin
     ifid_wre     => ifid_wre_tb,
     ifid_reset   => ifid_reset_tb,
     idex_reset   => idex_reset_tb,
+    branch_reset => branch_reset_tb,
     addr_src     => addr_src_tb,
     alu_op       => cu_alu_op_tb,
     branch       => branch_tb,
@@ -239,7 +242,7 @@ begin
   )
   port map(
     clk              => clk_tb,
-    reset            => reset_tb or idex_reset_out_tb,
+    reset            => reset_tb or idex_reset_out_tb or branch_reset_tb,
     wre              => '1',
     funct3_in        => inst_out_tb(14 downto 12),
     funct3_out       => funct3_out_tb,
