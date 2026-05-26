@@ -85,8 +85,8 @@ architecture sim of coretb is
   signal mem_en_out_tb          : std_logic;
   signal mem_wre_tb             : std_logic;
   signal mem_wre_out_tb         : std_logic;
-  signal ex_outp_tb             : std_logic;
-  signal ex_outp_out_tb         : std_logic;
+  signal ex_outp_tb             : std_logic_vector(1 downto 0);
+  signal ex_outp_out_tb         : std_logic_vector(1 downto 0);
   signal alu_op_sel_tb          : std_logic;
   signal alu_op_sel_out_tb      : std_logic;
   signal b_fwd_mux              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
@@ -113,18 +113,21 @@ architecture sim of coretb is
   signal branch_reset_tb        : std_logic;
 begin
 
-  clk_tb          <= not clk_tb after CLK_PERIOD / 2;
-  rd_tb           <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
-  tree_pc_tb      <= next_pc_tb when pc_mod_tb = '0' else pc_tb;
-  rd_in_tb        <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
-  res_in_tb       <= c_tb when ex_outp_out_tb = '0' else pc_plus_four_tb;
-  a_tb            <= res_out_tb when fwd_rs1_tb = "01" else rd_tb when fwd_rs1_tb = "10" else rs1_out_tb;
-  b_fwd_mux       <= res_out_tb when fwd_rs2_tb = "01" else rd_tb when fwd_rs2_tb = "10" else rs2_out_tb;
-  b_tb            <= b_fwd_mux when imm_sel_out_tb = '0' else imm_out_tb;
-  alu_op_tb       <= funct3_out_tb when alu_op_sel_out_tb = '0' else cu_alu_op_out_tb;
-  imm_addr        <= idex_pc_out_tb when imm_addr_src_out_tb = '0' else rs1_out_tb;
-  branch_taken_tb <= c_tb(0) when neg_alu_out_tb = '0' else nc_tb(0);
-  load_address_tb <= addr_src_out_tb when branch_out_tb = '0' else branch_taken_tb;
+  clk_tb             <= not clk_tb after CLK_PERIOD / 2;
+  rd_tb              <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
+  tree_pc_tb         <= next_pc_tb when pc_mod_tb = '0' else pc_tb;
+  rd_in_tb           <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
+  res_in_tb          <= pc_plus_four_tb when ex_outp_out_tb = "01" else 
+                        imm_out_tb when ex_outp_out_tb = "10" else 
+                        pc_tree_address when ex_outp_out_tb = "11" else c_tb;
+  a_tb               <= res_out_tb when fwd_rs1_tb = "01" else rd_tb when fwd_rs1_tb = "10" else rs1_out_tb;
+  b_fwd_mux          <= res_out_tb when fwd_rs2_tb = "01" else rd_tb when fwd_rs2_tb = "10" else rs2_out_tb;
+  b_tb               <= b_fwd_mux when imm_sel_out_tb = '0' else imm_out_tb;
+  alu_op_tb          <= funct3_out_tb when alu_op_sel_out_tb = '0' else cu_alu_op_out_tb;
+  imm_addr           <= idex_pc_out_tb when imm_addr_src_out_tb = '0' else rs1_out_tb;
+  branch_taken_tb    <= c_tb(0) when neg_alu_out_tb = '0' else nc_tb(0);
+  load_address_tb    <= addr_src_out_tb when branch_out_tb = '0' else branch_taken_tb;
+  pc_tree_address_tb <= std_logic_vector(unsigned(imm_addr) + unsigned(imm_out_tb));
 
   -- INSTRUCTION FETCH
 
@@ -161,7 +164,7 @@ begin
   port map(
     address_out => address_out_tb,
     pc => tree_pc_tb,
-    address => std_logic_vector(unsigned(imm_addr) + unsigned(imm_out_tb)),
+    address => pc_tree_address,
     address_src => load_address_tb
   );
 

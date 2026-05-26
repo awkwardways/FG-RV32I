@@ -12,7 +12,7 @@ port(
   mem_en       : out std_logic;
   mem_wre      : out std_logic;
   imm_sel      : out std_logic;
-  ex_outp      : out std_logic;
+  ex_outp      : out std_logic_vector(1 downto 0);
   imm_addr_src : out std_logic;
   ifid_wre     : out std_logic;
   idex_wre     : out std_logic;
@@ -34,7 +34,8 @@ begin
   mem_en       <= '1' when opcode = "0000011" or opcode = "0100011" else '0';
   mem_wre      <= '1' when opcode = "0100011" else '0';
   imm_sel      <= '0' when opcode = "0110011" or opcode = "0001111" or opcode = "1110011" or opcode = "1100011" else '1';
-  ex_outp      <= '1' when opcode = "1101111" or opcode = "1100011" else '0';
+  ex_outp      <= "01" when opcode = "1101111" or opcode = "1100111" else 
+                  "10" when opcode = "0110111" else "11" when opcode = "0010111" else "00";
   imm_addr_src <= '1' when opcode = "1100111" else '0';
   ifid_wre     <= '0' when opcode = "1100111" or opcode = "1101111" or (opcode = "1100011" and branch_taken = '1') else '1';
   ifid_reset   <= '1' when opcode = "1100111" or opcode = "1101111" or (opcode = "1100011" and branch_taken = '1') else '0';

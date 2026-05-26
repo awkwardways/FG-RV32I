@@ -43,6 +43,10 @@ begin
         immediate(9 downto 0) <= instruction(30 downto 21);
         immediate(18 downto 11) <= instruction(19 downto 12);
         immediate(31 downto 20) <= (others => instruction(31));
+      
+      when "0110111" | "0010111" => 
+        immediate(31 downto 12) <= instruction(31 downto 12);
+        inmediate(11 downto 0) <= (others => '0');
 
       when others => immediate <= (others => '0');
     end case;
