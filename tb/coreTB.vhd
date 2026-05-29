@@ -6,77 +6,57 @@ entity coretb is
 end entity coretb;
 
 architecture sim of coretb is
-  constant INSTR_WIDTH_TB  : integer := 32;
-  constant ADDR_WIDTH_TB   : integer := 32;
-  constant DATA_WIDTH_TB   : integer := 32;
-  constant OPCODE_WIDTH_TB : integer := 7;
-  constant IMM_WIDTH_TB    : integer := 32;
-  constant INST_WIDTH_TB   : integer := 32;
-  constant CLK_FREQ        : integer := 20e6;
-  constant CLK_PERIOD      : time    := 1000 ms / CLK_FREQ;
+  constant INSTR_WIDTH_TB       : integer := 32;
+  constant ADDR_WIDTH_TB        : integer := 32;
+  constant DATA_WIDTH_TB        : integer := 32;
+  constant OPCODE_WIDTH_TB      : integer := 7;
+  constant IMM_WIDTH_TB         : integer := 32;
+  constant INST_WIDTH_TB        : integer := 32;
+  constant CLK_FREQ             : integer := 20e6;
+  constant CLK_PERIOD           : time    := 1000 ms / CLK_FREQ;
 
-  signal address_out_tb   : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0);
-  signal address_tb       : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"ffaa0127";
-  signal offset_tb        : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0) := x"aa000033";
-  signal ram_dout_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal addr_src_tb      : std_logic;
-  signal pc_mod_tb        : std_logic := '0';
-  signal reset_tb         : std_logic;
-  signal clk_tb           : std_logic := '0';
-  signal inst_out_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal pc_out_tb        : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal next_pc_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal pc_tb            : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal immediate_tb     : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal imm_sel_tb       : std_logic;
-  signal imm_sel_out_tb     : std_logic;  
-  signal funct3_out_tb    : std_logic_vector(2 downto 0);
-  signal reg_rs1_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal rs1_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal reg_rs2_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal rs2_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal rd_tb            : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal rd_in_tb         : std_logic_vector(4 downto 0);
-  signal rd_sel_tb        : std_logic_vector(4 downto 0);
-  signal rs1_out_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal rs2_out_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal rd_out_tb        : std_logic_vector(4 downto 0);
-  signal imm_out_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal imm_found_out_tb : std_logic;
-  signal alu_mod_out_tb   : std_logic;
-  signal a_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal b_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal c_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal mem_rs2_out_tb   : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal res_out_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal mem_rd_out_tb    : std_logic_vector(4 downto 0);
-  signal ex_rs1_sel_out_tb   : std_logic_vector(4 downto 0);
-  signal ex_rs2_sel_out_tb   : std_logic_vector(4 downto 0);
-  signal ex_fwd_rs1_tb       : std_logic;
-  signal ex_fwd_rs2_tb       : std_logic;
-  signal id_fwd_rs1_tb       : std_logic;
-  signal id_fwd_rs2_tb       : std_logic;
-  signal ex_fwd_data_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal id_fwd_data_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal wb_data_in_tb       : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal data_dout_tb        : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal data_mem_en_tb      : std_logic;
-  signal data_wre_tb         : std_logic;
-  signal data_sel_out_tb     : std_logic;
-  signal wb_data_out_tb      : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal data_mask_tb        : std_logic_vector(2 downto 0);
-  signal op_select_tb        : std_logic_vector(2 downto 0);
-  signal mem_data_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal sign_ext_out_tb     : std_logic_vector(2 downto 0);
-  signal clear_ifid_tb       : std_logic;
-  signal alu_op_tb           : std_logic_vector(2 downto 0);
-  signal alu_mux_out_tb      : std_logic;
+  signal address_out_tb         : std_logic_vector(ADDR_WIDTH_TB - 1 downto 0);
+  signal ram_dout_tb            : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal addr_src_tb            : std_logic;
+  signal reset_tb               : std_logic;
+  signal clk_tb                 : std_logic := '0';
+  signal inst_out_tb            : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal pc_out_tb              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal next_pc_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal pc_tb                  : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal immediate_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal imm_sel_tb             : std_logic;
+  signal imm_sel_out_tb         : std_logic;  
+  signal funct3_out_tb          : std_logic_vector(2 downto 0);
+  signal rs1_tb                 : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal rs2_tb                 : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal rd_tb                  : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal rd_in_tb               : std_logic_vector(4 downto 0);
+  signal rd_sel_tb              : std_logic_vector(4 downto 0);
+  signal rs1_out_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal rs2_out_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal rd_out_tb              : std_logic_vector(4 downto 0);
+  signal imm_out_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal alu_mod_out_tb         : std_logic;
+  signal a_tb                   : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal b_tb                   : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal c_tb                   : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal mem_rs2_out_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal res_out_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal mem_rd_out_tb          : std_logic_vector(4 downto 0);
+  signal ex_rs1_sel_out_tb      : std_logic_vector(4 downto 0);
+  signal ex_rs2_sel_out_tb      : std_logic_vector(4 downto 0);
+  signal data_dout_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal data_mem_en_tb         : std_logic;
+  signal data_wre_tb            : std_logic;
+  signal data_sel_out_tb        : std_logic;
+  signal wb_data_out_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal data_mask_tb           : std_logic_vector(2 downto 0);
+  signal mem_data_tb            : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal sign_ext_out_tb        : std_logic_vector(2 downto 0);
+  signal alu_op_tb              : std_logic_vector(2 downto 0);
   signal idex_pc_out_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal alu_mux_tb             : std_logic;
   signal res_in_tb              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal tree_pc_tb             : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
-  signal clear_ifid_idex_out_tb : std_logic;
-  signal addr_a_tb              : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal fwd_rs1_tb             : std_logic_vector(1 downto 0);
   signal fwd_rs2_tb             : std_logic_vector(1 downto 0);
   signal next_pc_out_tb         : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
@@ -115,7 +95,6 @@ begin
 
   clk_tb             <= not clk_tb after CLK_PERIOD / 2;
   rd_tb              <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
-  tree_pc_tb         <= next_pc_tb when pc_mod_tb = '0' else pc_tb;
   rd_in_tb           <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
   res_in_tb          <= pc_plus_four_tb when ex_outp_out_tb = "01" else 
                         imm_out_tb when ex_outp_out_tb = "10" else 
@@ -163,7 +142,7 @@ begin
   )
   port map(
     address_out => address_out_tb,
-    pc => tree_pc_tb,
+    pc => next_pc_tb,
     address => pc_tree_address,
     address_src => load_address_tb
   );

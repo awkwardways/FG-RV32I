@@ -16,3 +16,5 @@ The structure of this repo is rather self-explanatory, however:
   - fib.hex calculates the nth fibonacci sequence number, where n is stored in r4. I used this program to test branching.
   - add.hex adds 2 numbers using a "function call" (jal and jalr). I used this program to test jumping.
   - ram_init.hex performs all instructions, that are not jumps or branches, storing the result in the processor's registers.
+
+The coreTB.vhd file can be used as the top level design for synthesis. 
