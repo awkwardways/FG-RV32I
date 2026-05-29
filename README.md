@@ -13,6 +13,6 @@ The structure of this repo is rather self-explanatory, however:
 - src/ contains all of the VHDL rtl modules .
 - tb/ contains the testbench files for the modules inside of src/, however not every single module has a corresponding testbench.
 - test_programs/ contains a few programs that i used to test the processor:
-  - fib.hex calculates the nth fibonacci sequence number, where n is stored in r1. I used this program to test branching.
+  - fib.hex calculates the nth fibonacci sequence number, where n is stored in r4. I used this program to test branching.
   - add.hex adds 2 numbers using a "function call" (jal and jalr). I used this program to test jumping.
   - ram_init.hex performs all instructions, that are not jumps or branches, storing the result in the processor's registers.
