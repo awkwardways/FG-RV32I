@@ -1,4 +1,4 @@
-rv32i (or as i like to call it: Future Gadget R Ver.3.2 I) is a 32 bit RISC-V processor written in VHDL which implements the RV32I instruction set and is completely pipelined. 
+FG-RV32I (or as i like to call it: Future Gadget R Ver.3.2 I) is a 32 bit RISC-V processor written in VHDL which implements the RV32I instruction set and is completely pipelined. 
 
 Currently, it counts with a whopping 4KB of instruction memory and 4KB of data memory, and can understand all of the RV32I instructions except for:
 
