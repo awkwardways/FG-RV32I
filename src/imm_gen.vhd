@@ -24,10 +24,6 @@ begin
       when "0010011" | "1100111" | "0000011" => 
         immediate(11 downto 0) <= instruction(31 downto 20);
         immediate(31 downto 12) <= (others => '0') when funct3 = "011" else (others => instruction(31));
-      
-      when "0110111" | "0010111" => 
-        immediate(19 downto 0) <= instruction(31 downto 12);
-        immediate(31 downto 20) <= (others => instruction(31));
 
       when "1100011" => 
         immediate(11 downto 0) <= instruction(31) & instruction(7) & instruction(30 downto 25) & instruction(11 downto 8);
@@ -46,7 +42,7 @@ begin
       
       when "0110111" | "0010111" => 
         immediate(31 downto 12) <= instruction(31 downto 12);
-        inmediate(11 downto 0) <= (others => '0');
+        immediate(11 downto 0) <= (others => '0');
 
       when others => immediate <= (others => '0');
     end case;

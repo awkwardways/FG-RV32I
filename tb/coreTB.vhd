@@ -91,21 +91,23 @@ architecture sim of coretb is
   signal nc_tb                  : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal alu_mod_tb             : std_logic;
   signal branch_reset_tb        : std_logic;
+  signal pc_tree_address_tb     : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
+  signal opcode_out_tb          : std_logic_vector(6 downto 0);
 begin
 
   clk_tb             <= not clk_tb after CLK_PERIOD / 2;
   rd_tb              <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
   rd_in_tb           <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
-  res_in_tb          <= pc_plus_four_tb when ex_outp_out_tb = "01" else 
-                        imm_out_tb when ex_outp_out_tb = "10" else 
-                        pc_tree_address when ex_outp_out_tb = "11" else c_tb;
+  res_in_tb          <= pc_plus_four_tb when ex_outp_tb = "01" else 
+                        imm_out_tb when ex_outp_tb = "10" else 
+                        pc_tree_address_tb when ex_outp_tb = "11" else c_tb;
   a_tb               <= res_out_tb when fwd_rs1_tb = "01" else rd_tb when fwd_rs1_tb = "10" else rs1_out_tb;
   b_fwd_mux          <= res_out_tb when fwd_rs2_tb = "01" else rd_tb when fwd_rs2_tb = "10" else rs2_out_tb;
-  b_tb               <= b_fwd_mux when imm_sel_out_tb = '0' else imm_out_tb;
-  alu_op_tb          <= funct3_out_tb when alu_op_sel_out_tb = '0' else cu_alu_op_out_tb;
-  imm_addr           <= idex_pc_out_tb when imm_addr_src_out_tb = '0' else rs1_out_tb;
-  branch_taken_tb    <= c_tb(0) when neg_alu_out_tb = '0' else nc_tb(0);
-  load_address_tb    <= addr_src_out_tb when branch_out_tb = '0' else branch_taken_tb;
+  b_tb               <= b_fwd_mux when imm_sel_tb = '0' else imm_out_tb;
+  alu_op_tb          <= funct3_out_tb when alu_op_sel_tb = '0' else cu_alu_op_tb;
+  imm_addr           <= idex_pc_out_tb when imm_addr_src_tb = '0' else rs1_out_tb;
+  branch_taken_tb    <= c_tb(0) when neg_alu_tb = '0' else nc_tb(0);
+  load_address_tb    <= addr_src_tb when branch_tb = '0' else branch_taken_tb;
   pc_tree_address_tb <= std_logic_vector(unsigned(imm_addr) + unsigned(imm_out_tb));
 
   -- INSTRUCTION FETCH
@@ -143,7 +145,7 @@ begin
   port map(
     address_out => address_out_tb,
     pc => next_pc_tb,
-    address => pc_tree_address,
+    address => pc_tree_address_tb,
     address_src => load_address_tb
   );
 
@@ -152,8 +154,8 @@ begin
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
   port map(
-    wre             => ifid_wre_out_tb or (not branch_reset_tb),
-    reset           => reset_tb or ifid_reset_out_tb or branch_reset_tb,
+    wre             => ifid_wre_tb or (not branch_reset_tb),
+    reset           => reset_tb or ifid_reset_tb or branch_reset_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
     pc_out          => pc_out_tb,
@@ -167,16 +169,16 @@ begin
 
   CONTROL_UNIT: entity work.control_unit(rtl)
   port map(
-    opcode       => inst_out_tb(6 downto 0),
-    funct_3      => inst_out_tb(14 downto 12),
+    opcode       => opcode_out_tb,
+    funct_3      => funct3_out_tb,
     branch_taken => branch_taken_tb,
     branch_in    => branch_out_tb,
-    amod         => inst_out_tb(30),
+    amod         => alu_mod_out_tb,
     alu_op_sel   => alu_op_sel_tb,
     mem_en       => mem_en_tb,
     mem_wre      => mem_wre_tb,
     imm_sel      => imm_sel_tb,
-    ex_outp      => ex_outp_tb ,
+    ex_outp      => ex_outp_tb,
     imm_addr_src => imm_addr_src_tb,
     ifid_wre     => ifid_wre_tb,
     ifid_reset   => ifid_reset_tb,
@@ -224,8 +226,10 @@ begin
   )
   port map(
     clk              => clk_tb,
-    reset            => reset_tb or idex_reset_out_tb or branch_reset_tb,
+    reset            => reset_tb or idex_reset_tb or branch_reset_tb,
     wre              => '1',
+    opcode_in        => inst_out_tb(6 downto 0),
+    opcode_out       => opcode_out_tb,
     funct3_in        => inst_out_tb(14 downto 12),
     funct3_out       => funct3_out_tb,
     rs1_sel_in       => inst_out_tb(19 downto 15),
@@ -240,38 +244,12 @@ begin
     rd_out           => rd_out_tb,
     imm_in           => immediate_tb,
     imm_out          => imm_out_tb, 
-    alu_mod_in       => alu_mod_tb,
+    alu_mod_in       => inst_out_tb(30),
     alu_mod_out      => alu_mod_out_tb,
     idex_pc_in       => pc_out_tb,
     idex_pc_out      => idex_pc_out_tb,
     pc_plus_four_in  => next_pc_out_tb,
-    pc_plus_four_out => pc_plus_four_tb,
-    imm_sel_in       => imm_sel_tb,
-    imm_sel_out      => imm_sel_out_tb, 
-    mem_en_in        => mem_en_tb,
-    mem_en_out       => mem_en_out_tb,
-    mem_wre_in       => mem_wre_tb,
-    mem_wre_out      => mem_wre_out_tb,
-    ex_outp_in       => ex_outp_tb,
-    ex_outp_out      => ex_outp_out_tb,
-    alu_op_sel_in    => alu_op_sel_tb,
-    alu_op_sel_out   => alu_op_sel_out_tb,
-    imm_addr_src_in  => imm_addr_src_tb,
-    imm_addr_src_out => imm_addr_src_out_tb,
-    ifid_wre_in      => ifid_wre_tb,
-    ifid_wre_out     => ifid_wre_out_tb,
-    ifid_reset_in    => ifid_reset_tb,
-    ifid_reset_out   => ifid_reset_out_tb,
-    idex_reset_in    => idex_reset_tb,
-    idex_reset_out   => idex_reset_out_tb,
-    addr_src_in      => addr_src_tb,
-    addr_src_out     => addr_src_out_tb,
-    cu_alu_op_in     => cu_alu_op_tb,
-    cu_alu_op_out    => cu_alu_op_out_tb,
-    branch_in        => branch_tb,
-    branch_out       => branch_out_tb,
-    neg_alu_in       => neg_alu_tb,
-    neg_alu_out      => neg_alu_out_tb
+    pc_plus_four_out => pc_plus_four_tb
   );
 
   -- EXECUTE
@@ -302,9 +280,9 @@ begin
     rs2_out => mem_rs2_out_tb,
     res_in => res_in_tb,
     res_out => res_out_tb,
-    mem_op_in => mem_en_out_tb,
+    mem_op_in => mem_en_tb,
     mem_op_out => data_mem_en_tb,
-    data_wre_in => mem_wre_out_tb,
+    data_wre_in => mem_wre_tb,
     data_wre_out => data_wre_tb,
     rd_in => rd_out_tb,
     rd_out => mem_rd_out_tb,

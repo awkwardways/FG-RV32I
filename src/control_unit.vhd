@@ -40,7 +40,7 @@ begin
   ifid_wre     <= '0' when opcode = "1100111" or opcode = "1101111" or (opcode = "1100011" and branch_taken = '1') else '1';
   ifid_reset   <= '1' when opcode = "1100111" or opcode = "1101111" or (opcode = "1100011" and branch_taken = '1') else '0';
   idex_reset   <= '1' when opcode = "1100111" or opcode = "1101111" or (opcode = "1100011" and branch_taken = '1') else '0';
-  branch_reset <= '1' when branch_in = '1' and branch_taken = '1' else '0';
+  branch_reset <= '1' when opcode = "1100011" and branch_taken = '1' else '0';
   addr_src     <= '1' when opcode = "1100111" or opcode = "1101111" or (opcode = "1100011" and branch_taken = '1') else '0';
   branch       <= '1' when opcode = "1100011" else '0';
   alu_mod      <= '1' when opcode = "1100011" and funct_3 = "001" else amod;
