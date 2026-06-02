@@ -98,6 +98,7 @@ begin
   clk_tb             <= not clk_tb after CLK_PERIOD / 2;
   rd_tb              <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
   rd_in_tb           <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
+  pc_plus_four_tb    <= std_logic_vector(unsigned(idex_pc_out_tb) + 4);
   res_in_tb          <= pc_plus_four_tb when ex_outp_tb = "01" else 
                         imm_out_tb when ex_outp_tb = "10" else 
                         pc_tree_address_tb when ex_outp_tb = "11" else c_tb;
