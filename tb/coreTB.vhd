@@ -106,8 +106,9 @@ begin
   b_tb               <= b_fwd_mux when imm_sel_tb = '0' else imm_out_tb;
   alu_op_tb          <= funct3_out_tb when alu_op_sel_tb = '0' else cu_alu_op_tb;
   imm_addr           <= idex_pc_out_tb when imm_addr_src_tb = '0' else rs1_out_tb;
-  branch_taken_tb    <= c_tb(0) when neg_alu_tb = '0' else nc_tb(0);
-  load_address_tb    <= addr_src_tb when branch_tb = '0' else branch_taken_tb;
+  branch_taken_tb    <= c_tb(0) when neg_alu_tb = '0' else not(c_tb(0));
+  branch_reset_tb    <= branch_tb and branch_taken_tb;
+  load_address_tb    <= (ifid_reset_tb or branch_reset_tb) when branch_tb = '0' else branch_taken_tb;
   pc_tree_address_tb <= std_logic_vector(unsigned(imm_addr) + unsigned(imm_out_tb));
 
   -- INSTRUCTION FETCH
@@ -133,8 +134,7 @@ begin
     pc          => pc_tb,
     address_in  => address_out_tb,
     reset       => reset_tb,
-    clk         => clk_tb,
-    wre         => '1'
+    clk         => clk_tb
   );
 
   PC_MUX_TREE: entity work.pc_tree(rtl)
@@ -154,13 +154,11 @@ begin
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
   port map(
-    wre             => ifid_wre_tb or (not branch_reset_tb),
+    wre             => (not ifid_reset_tb) or (not branch_reset_tb),
     reset           => reset_tb or ifid_reset_tb or branch_reset_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
     pc_out          => pc_out_tb,
-    next_pc_in      => next_pc_tb,
-    next_pc_out     => next_pc_out_tb,
     instruction_in  => ram_dout_tb,
     instruction_out => inst_out_tb
   );
@@ -171,8 +169,6 @@ begin
   port map(
     opcode       => opcode_out_tb,
     funct_3      => funct3_out_tb,
-    branch_taken => branch_taken_tb,
-    branch_in    => branch_out_tb,
     amod         => alu_mod_out_tb,
     alu_op_sel   => alu_op_sel_tb,
     mem_en       => mem_en_tb,
@@ -180,11 +176,7 @@ begin
     imm_sel      => imm_sel_tb,
     ex_outp      => ex_outp_tb,
     imm_addr_src => imm_addr_src_tb,
-    ifid_wre     => ifid_wre_tb,
     ifid_reset   => ifid_reset_tb,
-    idex_reset   => idex_reset_tb,
-    branch_reset => branch_reset_tb,
-    addr_src     => addr_src_tb,
     alu_op       => cu_alu_op_tb,
     branch       => branch_tb,
     neg_alu      => neg_alu_tb,
@@ -209,8 +201,8 @@ begin
   port map(
     clk => clk_tb,
     reset => reset_tb,
-    rs1_en => '1',
-    rs2_en => inst_out_tb(5) and (not inst_out_tb(2)),
+    rs1_en => inst_out_tb(19) or inst_out_tb(18) or inst_out_tb(17) or inst_out_tb(16) or inst_out_tb(15),
+    rs2_en => inst_out_tb(24) or inst_out_tb(23) or inst_out_tb(22) or inst_out_tb(21) or inst_out_tb(20),
     rs1_sel => inst_out_tb(19 downto 15),
     rs2_sel => inst_out_tb(24 downto 20),
     rd_sel => rd_sel_tb,
@@ -226,7 +218,7 @@ begin
   )
   port map(
     clk              => clk_tb,
-    reset            => reset_tb or idex_reset_tb or branch_reset_tb,
+    reset            => reset_tb or ifid_reset_tb or branch_reset_tb,
     wre              => '1',
     opcode_in        => inst_out_tb(6 downto 0),
     opcode_out       => opcode_out_tb,
@@ -247,9 +239,7 @@ begin
     alu_mod_in       => inst_out_tb(30),
     alu_mod_out      => alu_mod_out_tb,
     idex_pc_in       => pc_out_tb,
-    idex_pc_out      => idex_pc_out_tb,
-    pc_plus_four_in  => next_pc_out_tb,
-    pc_plus_four_out => pc_plus_four_tb
+    idex_pc_out      => idex_pc_out_tb
   );
 
   -- EXECUTE
@@ -263,9 +253,7 @@ begin
     a => a_tb,
     b => b_tb,
     c => c_tb,
-    nc => nc_tb,
-    op_select => alu_op_tb,
-    modifier => alu_mod_out_tb
+    op_select => alu_op_tb & alu_mod_out_tb
   );
 
   EXMEM: entity work.exmem_register(rtl)

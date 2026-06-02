@@ -28,9 +28,7 @@ port(
   alu_mod_in       : in std_logic;
   alu_mod_out      : out std_logic;
   idex_pc_in       : in std_logic_vector(DATA_WIDTH - 1 downto 0);
-  idex_pc_out      : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-  pc_plus_four_in  : in std_logic_vector(DATA_WIDTH - 1 downto 0);
-  pc_plus_four_out : out std_logic_vector(DATA_WIDTH - 1 downto 0)
+  idex_pc_out      : out std_logic_vector(DATA_WIDTH - 1 downto 0)
 );
 end entity idex_register;
 
@@ -44,7 +42,6 @@ architecture rtl of idex_register is
   signal imm          : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal alu_mod      : std_logic;
   signal idex_pc      : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal pc_plus_four : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal opcode       : std_logic_vector(6 downto 0);
 begin
   
@@ -57,13 +54,12 @@ begin
   imm_out <= imm;
   alu_mod_out <= alu_mod;
   idex_pc_out <= idex_pc;
-  pc_plus_four_out <= pc_plus_four;
   opcode_out <= opcode;
 
 
   process(
     clk, wre, reset, funct3_in, rs1_in, rs2_in, rd_in, 
-    imm_in, alu_mod_in, idex_pc_in, pc_plus_four_in, opcode_in)
+    imm_in, alu_mod_in, idex_pc_in, opcode_in)
   begin
     if rising_edge(clk) then
       if reset = '0' then
@@ -76,7 +72,6 @@ begin
         imm <= imm_in when wre = '1' else imm;
         alu_mod <= alu_mod_in when wre = '1' else alu_mod;
         idex_pc <= idex_pc_in when wre = '1' else idex_pc;
-        pc_plus_four <= pc_plus_four_in when wre = '1' else pc_plus_four;
         opcode <= opcode_in when wre = '1' else opcode;
       else
         funct3       <= (others => '0');
@@ -88,7 +83,6 @@ begin
         imm          <= (others => '0');
         alu_mod      <= '0';
         idex_pc      <= (others => '0');
-        pc_plus_four <= (others => '0');
         opcode       <= (others => '0');
       end if;
     end if;

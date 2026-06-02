@@ -6,10 +6,10 @@ generic(
   ADDR_WIDTH : integer := 32 
 );
 port(
-  address_in      : in std_logic_vector(ADDR_WIDTH - 1 downto 0);
-  next_pc         : out std_logic_vector(ADDR_WIDTH - 1 downto 0);
-  pc              : out std_logic_vector(ADDR_WIDTH - 1 downto 0);
-  clk, wre, reset : in std_logic
+  address_in : in std_logic_vector(ADDR_WIDTH - 1 downto 0);
+  next_pc    : out std_logic_vector(ADDR_WIDTH - 1 downto 0);
+  pc         : out std_logic_vector(ADDR_WIDTH - 1 downto 0);
+  clk, reset : in std_logic
 );
 end entity memory_address_register;
 
@@ -21,16 +21,11 @@ begin
   next_pc <= next_address;
   pc      <= address;
 
-  process(clk, wre, address_in, reset)
+  process(clk, address_in, reset)
   begin
     if rising_edge(clk) then
-      if reset = '0' then
-        address <= next_address when wre = '1' else address;
-        next_address <= address_in when wre = '1' else next_address;
-      else 
-        address <= (others => '0');
-        next_address <= (others => '0');
-      end if;
+      address <= next_address when reset = '0' else (others => '0');
+      next_address <= address_in when reset = '0' else (others => '0');
     end if;
   end process;
 

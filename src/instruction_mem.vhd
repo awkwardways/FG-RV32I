@@ -34,7 +34,7 @@ architecture rtl of instruction_mem is
     return ram_content;
   end function;
 
-  signal memory : memory_t := init_mem;
+  constant memory : memory_t := init_mem;
 begin
 
   process(clk, en, address)

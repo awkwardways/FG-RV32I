@@ -11,8 +11,6 @@ port(
   clk             : in std_logic;
   pc_in           : in std_logic_vector(ADDR_WIDTH - 1 downto 0);
   pc_out          : out std_logic_vector(ADDR_WIDTH - 1 downto 0);
-  next_pc_in      : in std_logic_vector(ADDR_WIDTH - 1 downto 0);
-  next_pc_out     : out std_logic_vector(ADDR_WIDTH - 1 downto 0);
   instruction_in  : in std_logic_vector(ADDR_WIDTH - 1 downto 0);
   instruction_out : out std_logic_vector(ADDR_WIDTH - 1 downto 0)
 );
@@ -21,24 +19,20 @@ end entity ifid_register;
 architecture rtl of ifid_register is
   signal pc          : std_logic_vector(ADDR_WIDTH - 1 downto 0) := (others => '0');
   signal instruction : std_logic_vector(ADDR_WIDTH - 1 downto 0) := (others => '0');
-  signal next_pc     : std_logic_vector(ADDR_WIDTH - 1 downto 0) := (others => '0');
 begin
 
   pc_out          <= pc;
   instruction_out <= instruction;
-  next_pc_out     <= next_pc;
 
-  process(clk, wre, pc_in, instruction_in, next_pc_in, reset)
+  process(clk, wre, pc_in, instruction_in, reset)
   begin
     if rising_edge(clk) then
       if reset = '1' then
         pc          <= (others => '0');
         instruction <= (others => '0');
-        next_pc     <= (others => '0');
       else
         pc          <= pc_in when wre = '1' else pc;
         instruction <= instruction_in when wre = '1' else instruction;
-        next_pc     <= next_pc_in when wre = '1' else next_pc;
       end if;
     end if;
   end process;
