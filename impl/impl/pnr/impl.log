@@ -1,0 +1,13 @@
+Reading netlist file: "D:\Documents\Codigo\VHDL\rv32i\impl\impl\gwsynthesis\impl.vg"
+Parsing netlist file "D:\Documents\Codigo\VHDL\rv32i\impl\impl\gwsynthesis\impl.vg" completed
+Processing netlist completed
+Reading constraint file: "D:\Documents\Codigo\VHDL\rv32i\impl\src\impl.cst"
+Physical Constraint parsed completed
+Running placement......
+ERROR  (PR2028) : The constrained location is useless in current package
+ERROR  (PR2017) : 'reset' cannot be placed according to constraint, for the location is a dedicated pin (SSPI)
+Generate file "D:\Documents\Codigo\VHDL\rv32i\impl\impl\pnr\impl.pin.html" completed
+Generate file "D:\Documents\Codigo\VHDL\rv32i\impl\impl\pnr\impl.rpt.html" completed
+Generate file "D:\Documents\Codigo\VHDL\rv32i\impl\impl\pnr\impl.rpt.txt" completed
+Sat May 30 09:34:23 2026
+

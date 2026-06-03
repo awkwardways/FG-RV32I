@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gowin-synthesis-project>
+<Project>
+    <Version>beta</Version>
+    <Device id="GW2A-18C" package="PBGA256" speed="8" partNumber="GW2A-LV18PG256C8/I7"/>
+    <FileList>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\ALU.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\MAR.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\control_unit.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\core.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\exmem.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\forwarding_unit.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\idex.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\ifid.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\imm_gen.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\instruction_mem.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\memwb.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\registers.vhd" type="vhdl"/>
+        <File path="D:\Documents\Codigo\VHDL\rv32i\impl\src\sign_ext.vhd" type="vhdl"/>
+    </FileList>
+    <OptionList>
+        <Option type="disable_insert_pad" value="0"/>
+        <Option type="global_freq" value="100.000"/>
+        <Option type="looplimit" value="2000"/>
+        <Option type="output_file" value="D:\Documents\Codigo\VHDL\rv32i\impl\impl\gwsynthesis\impl.vg"/>
+        <Option type="print_all_synthesis_warning" value="0"/>
+        <Option type="ram_rw_check" value="0"/>
+        <Option type="vcc" value="1.0"/>
+        <Option type="verilog_language" value="verilog-2001"/>
+        <Option type="vhdl_language" value="vhdl-2008"/>
+    </OptionList>
+</Project>
