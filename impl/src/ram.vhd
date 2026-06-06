@@ -1,12 +1,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use std.textio.all;
 
 
 entity ram is
 generic(
-  ADDR_WIDTH : integer := 12;
+  ADDR_WIDTH : integer := 8;
   DATA_WIDTH : integer := 32;
   WORD_WIDTH : integer := 8
 );
@@ -15,56 +14,67 @@ port(
   din     : in std_logic_vector(DATA_WIDTH - 1 downto 0);
   dout    : out std_logic_vector(DATA_WIDTH - 1 downto 0);
   mask    : in std_logic_vector(1 downto 0);
-  en      : in std_logic;
   wre     : in std_logic;
   clk     : in std_logic
 );
 end entity ram;
 
 architecture rtl of ram is
-  type memory_t is array (0 to 2 ** ADDR_WIDTH - 1) of std_logic_vector(7 downto 0);
+  type memory_t is array (0 to 2 ** ADDR_WIDTH - 1) of std_logic_vector(WORD_WIDTH - 1  downto 0);
 
-  signal memory : memory_t := (others => x"aa");
+  signal memory : memory_t := (others => x"00");
+  signal addr_p1 : std_logic_vector(ADDR_WIDTH - 1 downto 0) := (others => '0');
+  signal addr_p2 : std_logic_vector(ADDR_WIDTH - 1 downto 0) := (others => '0');
+  signal addr_p3 : std_logic_vector(ADDR_WIDTH - 1 downto 0) := (others => '0');
 begin
 
-  process(clk, wre, en, address, din)
+  process(clk, wre, address, mask)
   begin
-    if rising_edge(clk) and en = '1' then
-      if wre = '0' then
-        case mask is
-          when "00" => 
-            dout <= x"000000" & memory(to_integer(unsigned(address)));
+    if rising_edge(clk) and wre = '1' and mask = "10" then
+      addr_p1 <= std_logic_vector(unsigned(address) + 1);
+    end if;
+  end process;
 
-          -- Half word access
-          when "01" => 
-            dout <= x"0000" & memory(to_integer(unsigned(address) + 1)) & memory(to_integer(unsigned(address)));
+  process(clk, wre, address, mask)
+  begin
+    if rising_edge(clk) and wre = '1' and mask = "01" then
+      addr_p2 <= std_logic_vector(unsigned(address) + 2);
+      addr_p3 <= std_logic_vector(unsigned(address) + 3);
+    end if;
+  end process;
 
-          -- Word access
-          when "10" => 
-            dout <= memory(to_integer(unsigned(address) + 3)) & memory(to_integer(unsigned(address) + 2)) & memory(to_integer(unsigned(address) + 1)) & memory(to_integer(unsigned(address)));
-          
-          when others => dout <= (others => '0');
-        end case;
-      else
-        case mask is
-          when "00" => 
-            memory(to_integer(unsigned(address))) <= din(7 downto 0);
+  process(clk, wre, address, din)
+  begin
+    if rising_edge(clk) and wre = '1' then
+      memory(to_integer(unsigned(address))) <= din(7 downto 0);
+    end if;
+  end process;
 
-          when "01" => 
-            memory(to_integer(unsigned(address))) <= din(7 downto 0);
-            memory(to_integer(unsigned(address) + 1)) <= din(15 downto 8);
+  process(clk, wre, address, din, mask)
+  begin
+    if rising_edge(clk) and wre = '1' and mask = "10" then
+      memory(to_integer(unsigned(addr_p1))) <= din(15 downto 8);
+    end if;
+  end process;
 
-          when "10" => 
-            memory(to_integer(unsigned(address))) <= din(7 downto 0);
-            memory(to_integer(unsigned(address) + 1)) <= din(15 downto 8);
-            memory(to_integer(unsigned(address) + 2)) <= din(23 downto 16);
-            memory(to_integer(unsigned(address) + 3)) <= din(31 downto 24);
-          
-          when others => memory(to_integer(unsigned(address))) <= (others => '0');
-        end case;
-      end if;
-    elsif rising_edge(clk) and en = '0' then
-      dout <= (others => '0');
+  process(clk, wre, address, din, mask)
+  begin
+    if rising_edge(clk) and wre = '1' and mask = "01" then
+      memory(to_integer(unsigned(addr_p2))) <= din(23 downto 16);
+    end if;
+  end process;
+
+  process(clk, wre, address, din, mask)
+  begin
+    if rising_edge(clk) and wre = '1' and mask = "01" then
+      memory(to_integer(unsigned(addr_p3))) <= din(31 downto 24);
+    end if;
+  end process;
+
+  process(clk, wre, address)
+  begin
+    if rising_edge(clk) and wre = '0' then
+      dout <= memory(to_integer(unsigned(address) + 3)) & memory(to_integer(unsigned(address) + 2)) & memory(to_integer(unsigned(address) + 1)) & memory(to_integer(unsigned(address)));
     end if;
   end process;
 

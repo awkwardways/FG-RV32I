@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity coretb is 
+entity coretb is
 end entity coretb;
 
 architecture sim of coretb is
@@ -26,7 +26,7 @@ architecture sim of coretb is
   signal pc_tb                  : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal immediate_tb           : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal imm_sel_tb             : std_logic;
-  signal imm_sel_out_tb         : std_logic;  
+  signal imm_sel_out_tb         : std_logic;
   signal funct3_out_tb          : std_logic_vector(2 downto 0);
   signal rs1_tb                 : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal rs2_tb                 : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
@@ -99,8 +99,8 @@ begin
   rd_tb              <= wb_data_out_tb when data_sel_out_tb = '0' else mem_data_tb;
   rd_in_tb           <= inst_out_tb(11 downto 7) when inst_out_tb(6 downto 0) /= "0100011" and inst_out_tb(6 downto 0) /= "1100011" else (others => '0');
   pc_plus_four_tb    <= std_logic_vector(unsigned(idex_pc_out_tb) + 4);
-  res_in_tb          <= pc_plus_four_tb when ex_outp_tb = "01" else 
-                        imm_out_tb when ex_outp_tb = "10" else 
+  res_in_tb          <= pc_plus_four_tb when ex_outp_tb = "01" else
+                        imm_out_tb when ex_outp_tb = "10" else
                         pc_tree_address_tb when ex_outp_tb = "11" else c_tb;
   a_tb               <= res_out_tb when fwd_rs1_tb = "01" else rd_tb when fwd_rs1_tb = "10" else rs1_out_tb;
   b_fwd_mux          <= res_out_tb when fwd_rs2_tb = "01" else rd_tb when fwd_rs2_tb = "10" else rs2_out_tb;
@@ -115,7 +115,7 @@ begin
   -- INSTRUCTION FETCH
 
   INSTRUCTION_MEM: entity work.instruction_mem(rtl)
-  generic map( 
+  generic map(
     ADDR_WIDTH => 12,
     DATA_WIDTH => DATA_WIDTH_TB
   )
@@ -236,7 +236,7 @@ begin
     rd_in            => rd_in_tb,
     rd_out           => rd_out_tb,
     imm_in           => immediate_tb,
-    imm_out          => imm_out_tb, 
+    imm_out          => imm_out_tb,
     alu_mod_in       => inst_out_tb(30),
     alu_mod_out      => alu_mod_out_tb,
     idex_pc_in       => pc_out_tb,
@@ -254,7 +254,7 @@ begin
     a => a_tb,
     b => b_tb,
     c => c_tb,
-    op_select => alu_op_tb & alu_mod_out_tb
+    op_select => alu_op_tb & alu_mod_tb
   );
 
   EXMEM: entity work.exmem_register(rtl)
@@ -292,11 +292,10 @@ begin
     din     => mem_rs2_out_tb,
     dout    => data_dout_tb,
     mask    => data_mask_tb(1 downto 0),
-    en      => data_mem_en_tb,
     wre     => data_wre_tb,
     clk     => clk_tb
   );
-  
+
   MEMWB: entity work.memwb_register(rtl)
   generic map(
     DATA_WIDTH => DATA_WIDTH_TB
@@ -314,15 +313,15 @@ begin
     sign_ext_in => data_mask_tb,
     sign_ext_out => sign_ext_out_tb
   );
-      
+
   SIGN_EXT: entity work.sign_extender(rtl)
   generic map(
     DATA_WIDTH => DATA_WIDTH_TB
   )
   port map(
-    data_in => data_dout_tb,
+    data_in => (data_dout_tb(31 downto 16) and sign_ext_out_tb(1)) & (data_dout_tb(15 downto 8) and (sign_ext_out_tb(0) or sign_ext_out_tb(1))) & data_dout_tb(7 downto 0),
     data_out => mem_data_tb,
-    op => sign_ext_out_tb 
+    op => sign_ext_out_tb
   );
 
 
@@ -337,7 +336,7 @@ begin
     mem_rd_sel => mem_rd_out_tb,
     wb_rd_sel  => rd_sel_tb,
     fwd_rs1    => fwd_rs1_tb,
-    fwd_rs2    => fwd_rs2_tb 
+    fwd_rs2    => fwd_rs2_tb
   );
 
   stimuli: process

@@ -5,21 +5,21 @@
     <Version>5</Version>
     <Device name="GW2A-18C" pn="GW2A-LV18PG256C8/I7">gw2a18c-011</Device>
     <FileList>
-        <File path="src/ALU.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/MAR.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/control_unit.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/core.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/exmem.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/forwarding_unit.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/idex.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/ifid.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/imm_gen.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/instruction_mem.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/memwb.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/ALU.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/MAR.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/control_unit.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/core.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/exmem.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/forwarding_unit.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/idex.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/ifid.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/imm_gen.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/instruction_mem.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/memwb.vhd" type="file.vhdl" enable="0"/>
         <File path="src/pc_tree.vhd" type="file.vhdl" enable="0"/>
         <File path="src/ram.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/registers.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/sign_ext.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/registers.vhd" type="file.vhdl" enable="0"/>
+        <File path="src/sign_ext.vhd" type="file.vhdl" enable="0"/>
         <File path="src/impl.cst" type="file.cst" enable="1"/>
         <File path="src/fib.hex" type="file.other" enable="1"/>
     </FileList>

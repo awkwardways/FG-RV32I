@@ -30,7 +30,7 @@ begin
   ex_outp      <= "01" when opcode = "1101111" or opcode = "1100111" else 
                   "10" when opcode = "0110111" else "11" when opcode = "0010111" else "00";
   imm_addr_src <= '1' when opcode = "1100111" else '0';
-  ifid_reset   <= '1' when opcode = "1100111" or opcode = "1101111" else '0';
+  ifid_reset   <= '1' when opcode = "1100111" or opcode = "1101111" else amod;
   branch       <= '1' when opcode = "1100011" else '0';
   alu_mod      <= '1' when opcode = "1100011" and funct_3 = "001" else '0';  --Turn this into mux selection signal
   alu_op       <= "100" when opcode = "1100011" and funct_3 = "000" else

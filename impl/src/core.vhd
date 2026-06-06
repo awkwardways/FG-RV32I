@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity core is 
+entity core is
 port(
   clk   : in std_logic;
   reset : in std_logic;
@@ -46,7 +46,7 @@ architecture rtl of core is
   signal ex_rs1_sel_out      : std_logic_vector(4 downto 0);
   signal ex_rs2_sel_out      : std_logic_vector(4 downto 0);
   signal data_dout           : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal mem_op              : std_logic_vector(1 downto 0);
+  signal mem_op              : std_logic;
   signal data_wre            : std_logic;
   signal data_sel_out        : std_logic;
   signal wb_data_out         : std_logic_vector(DATA_WIDTH - 1 downto 0);
@@ -77,15 +77,15 @@ architecture rtl of core is
   signal branch_reset        : std_logic;
   signal pc_tree_address     : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal opcode_out          : std_logic_vector(6 downto 0);
-  
+
 begin
 
   res             <= res_out;
   rd              <= wb_data_out when data_sel_out = '0' else mem_data;
   rd_in           <= inst_out(11 downto 7) when inst_out(6 downto 0) /= "0100011" and inst_out(6 downto 0) /= "1100011" else (others => '0');
   pc_plus_four    <= std_logic_vector(unsigned(idex_pc_out) + 4);
-  res_in          <= pc_plus_four when ex_outp = "01" else 
-                        imm_out when ex_outp = "10" else 
+  res_in          <= pc_plus_four when ex_outp = "01" else
+                        imm_out when ex_outp = "10" else
                         pc_tree_address when ex_outp = "11" else c;
   a               <= res_out when fwd_rs1 = "01" else rd when fwd_rs1 = "10" else rs1_out;
   b_fwd_mux       <= res_out when fwd_rs2 = "01" else rd when fwd_rs2 = "10" else rs2_out;
@@ -100,7 +100,7 @@ begin
   -- INSTRUCTION FETCH
 
   INSTRUCTION_MEM: entity work.instruction_mem(rtl)
-  generic map( 
+  generic map(
     ADDR_WIDTH => 10,
     DATA_WIDTH => DATA_WIDTH
   )
@@ -185,7 +185,7 @@ begin
     rs1 => rs1,
     rs2 => rs2,
     rd => rd,
-    wre => '1'
+    wre => rd_sel(0) or rd_sel(1) or rd_sel(2) or rd_sel(3) or rd_sel(4)
   );
 
   IDEX: entity work.idex_register(rtl)
@@ -211,7 +211,7 @@ begin
     rd_in            => rd_in,
     rd_out           => rd_out,
     imm_in           => immediate,
-    imm_out          => imm_out, 
+    imm_out          => imm_out,
     alu_mod_in       => inst_out(30),
     alu_mod_out      => alu_mod_out,
     idex_pc_in       => pc_out,
@@ -244,7 +244,7 @@ begin
     rs2_out => mem_rs2_out,
     res_in => res_in,
     res_out => res_out,
-    mem_op_in => mem_en & mem_wre,
+    mem_op_in => mem_wre,
     mem_op_out => mem_op,
     rd_in => rd_out,
     rd_out => mem_rd_out,
@@ -265,11 +265,10 @@ begin
     din     => mem_rs2_out,
     dout    => data_dout,
     mask    => data_mask(1 downto 0),
-    en      => mem_op(1),
-    wre     => mem_op(0),
+    wre     => mem_op,
     clk     => clk
   );
-  
+
   MEMWB: entity work.memwb_register(rtl)
   generic map(
     DATA_WIDTH => DATA_WIDTH
@@ -287,7 +286,7 @@ begin
     sign_ext_in => data_mask,
     sign_ext_out => sign_ext_out
   );
-      
+
   SIGN_EXT: entity work.sign_extender(rtl)
   generic map(
     DATA_WIDTH => DATA_WIDTH
@@ -295,7 +294,7 @@ begin
   port map(
     data_in => data_dout,
     data_out => mem_data,
-    op => sign_ext_out 
+    op => sign_ext_out
   );
 
   -- HAZARD CONTROL
@@ -309,7 +308,7 @@ begin
     mem_rd_sel => mem_rd_out,
     wb_rd_sel  => rd_sel,
     fwd_rs1    => fwd_rs1,
-    fwd_rs2    => fwd_rs2 
+    fwd_rs2    => fwd_rs2
   );
 
 end architecture rtl;

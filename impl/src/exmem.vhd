@@ -13,8 +13,8 @@ port(
   rs2_out      : out std_logic_vector(DATA_WIDTH - 1 downto 0);
   res_in       : in std_logic_vector(DATA_WIDTH - 1 downto 0);
   res_out      : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-  mem_op_in    : in std_logic_vector(1 downto 0);
-  mem_op_out   : out std_logic_vector(1 downto 0);
+  mem_op_in    : in std_logic;
+  mem_op_out   : out std_logic;
   mask_in      : in std_logic_vector(2 downto 0);
   mask_out     : out std_logic_vector(2 downto 0);
   rd_in        : in std_logic_vector(4 downto 0);
@@ -25,7 +25,7 @@ end entity exmem_register;
 architecture rtl of exmem_register is
   signal rs2 : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal res : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal mem_op : std_logic_vector(1 downto 0);
+  signal mem_op : std_logic;
   signal rd : std_logic_vector(4 downto 0);
   signal mask : std_logic_vector(2 downto 0);
 begin
@@ -48,7 +48,7 @@ begin
       else
         rs2 <= (others => '0');
         res <= (others => '0');
-        mem_op <= (others => '0');
+        mem_op <= '0';
         rd <= (others => '0');
         mask <= (others => '0');
       end if;

@@ -1,63 +1,11 @@
 GowinSynthesis start
 Running parser ...
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\ALU.vhd'
-Analyzing entity 'alu'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ALU.vhd":5)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ALU.vhd":19)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\MAR.vhd'
-Analyzing entity 'memory_address_register'("D:\Documents\Codigo\VHDL\rv32i\impl\src\MAR.vhd":4)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\MAR.vhd":16)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\control_unit.vhd'
-Analyzing entity 'control_unit'("D:\Documents\Codigo\VHDL\rv32i\impl\src\control_unit.vhd":4)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\control_unit.vhd":23)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\instruction_mem.vhd'
-Analyzing entity 'instruction_mem'("D:\Documents\Codigo\VHDL\rv32i\impl\src\instruction_mem.vhd":6)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\instruction_mem.vhd":19)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\ifid.vhd'
-Analyzing entity 'ifid_register'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ifid.vhd":4)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ifid.vhd":19)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\imm_gen.vhd'
-Analyzing entity 'immediate_generator'("D:\Documents\Codigo\VHDL\rv32i\impl\src\imm_gen.vhd":4)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\imm_gen.vhd":16)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\registers.vhd'
-Analyzing entity 'registers_unit'("D:\Documents\Codigo\VHDL\rv32i\impl\src\registers.vhd":5)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\registers.vhd":24)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\idex.vhd'
-Analyzing entity 'idex_register'("D:\Documents\Codigo\VHDL\rv32i\impl\src\idex.vhd":4)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\idex.vhd":35)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\exmem.vhd'
-Analyzing entity 'exmem_register'("D:\Documents\Codigo\VHDL\rv32i\impl\src\exmem.vhd":4)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\exmem.vhd":25)
 Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd'
-Analyzing entity 'ram'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd":7)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd":24)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\memwb.vhd'
-Analyzing entity 'memwb_register'("D:\Documents\Codigo\VHDL\rv32i\impl\src\memwb.vhd":4)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\memwb.vhd":23)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\sign_ext.vhd'
-Analyzing entity 'sign_extender'("D:\Documents\Codigo\VHDL\rv32i\impl\src\sign_ext.vhd":4)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\sign_ext.vhd":15)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\forwarding_unit.vhd'
-Analyzing entity 'forwarding_unit'("D:\Documents\Codigo\VHDL\rv32i\impl\src\forwarding_unit.vhd":4)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\forwarding_unit.vhd":18)
-Analyzing VHDL file 'D:\Documents\Codigo\VHDL\rv32i\impl\src\core.vhd'
-Analyzing entity 'core'("D:\Documents\Codigo\VHDL\rv32i\impl\src\core.vhd":5)
-Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\core.vhd":13)
-Processing 'core(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\core.vhd":5)
-Processing 'instruction_mem(addr_width=10)(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\instruction_mem.vhd":6)
-Processing 'memory_address_register(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\MAR.vhd":4)
-Processing 'ifid_register(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ifid.vhd":4)
-Processing 'control_unit(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\control_unit.vhd":4)
-Processing 'immediate_generator(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\imm_gen.vhd":4)
-Processing 'registers_unit(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\registers.vhd":5)
-Processing 'idex_register(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\idex.vhd":4)
-Processing 'ALU(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ALU.vhd":5)
-Processing 'exmem_register(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\exmem.vhd":4)
-Processing 'ram(addr_width=10)(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd":7)
-Extracting RAM for identifier 'memory'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd":27)
-Processing 'memwb_register(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\memwb.vhd":4)
-Processing 'sign_extender(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\sign_ext.vhd":4)
-Processing 'forwarding_unit(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\forwarding_unit.vhd":4)
-NOTE  (EX0101) : Current top module is "core"
+Analyzing entity 'ram'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd":6)
+Analyzing architecture 'rtl'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd":22)
+Processing 'ram(rtl)'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd":6)
+Extracting RAM for identifier 'memory'("D:\Documents\Codigo\VHDL\rv32i\impl\src\ram.vhd":25)
+NOTE  (EX0101) : Current top module is "ram"
 [5%] Running netlist conversion ...
 Running device independent optimization ...
 [10%] Optimizing Phase 0 completed
@@ -74,5 +22,6 @@ Running technical mapping ...
 [75%] Tech-Mapping Phase 2 completed
 [80%] Tech-Mapping Phase 3 completed
 [90%] Tech-Mapping Phase 4 completed
-ERROR (RP0006) : The number(48929(48589 LUTs, 196 ALUs, 0 ROM16s, 24 SSRAMs)) of logic in the design exceeds the resource limit(20736) of current device
+[95%] Generate netlist file "D:\Documents\Codigo\VHDL\rv32i\impl\impl\gwsynthesis\impl.vg" completed
+[100%] Generate report file "D:\Documents\Codigo\VHDL\rv32i\impl\impl\gwsynthesis\impl_syn.rpt.html" completed
 GowinSynthesis finish

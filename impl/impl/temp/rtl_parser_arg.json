@@ -3,72 +3,7 @@
  "Files" : [
   {
    "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/ALU.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/MAR.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/control_unit.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/core.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/exmem.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/forwarding_unit.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/idex.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/ifid.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/imm_gen.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/instruction_mem.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/memwb.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
    "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/ram.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/registers.vhd",
-   "Type" : "vhdl"
-  },
-  {
-   "Library" : "work",
-   "Path" : "D:/Documents/Codigo/VHDL/rv32i/impl/src/sign_ext.vhd",
    "Type" : "vhdl"
   }
  ],
