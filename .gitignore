@@ -3,4 +3,5 @@ tb/*
 !*.vhd
 !*.hex
 work/*
-impl/impl/*
+impl/*
+!impl/src
