@@ -1,7 +1,6 @@
 src/*
 tb/*
+impl/impl/
+impl.gprj*
 !*.vhd
 !*.hex
-work/*
-impl/*
-!impl/src
