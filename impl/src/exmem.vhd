@@ -15,6 +15,8 @@ port(
   res_out      : out std_logic_vector(DATA_WIDTH - 1 downto 0);
   mem_op_in    : in std_logic;
   mem_op_out   : out std_logic;
+  data_wre_in  : in std_logic;
+  data_wre_out : out std_logic;
   mask_in      : in std_logic_vector(2 downto 0);
   mask_out     : out std_logic_vector(2 downto 0);
   rd_in        : in std_logic_vector(4 downto 0);
@@ -27,6 +29,7 @@ architecture rtl of exmem_register is
   signal res : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal mem_op : std_logic;
   signal rd : std_logic_vector(4 downto 0);
+  signal data_wre : std_logic;
   signal mask : std_logic_vector(2 downto 0);
 begin
 
@@ -34,6 +37,7 @@ begin
   res_out <= res;
   mem_op_out <= mem_op;
   rd_out <= rd;
+  data_wre_out <= data_wre;
   mask_out <= mask;
 
   process(clk, reset, wre, rs2_in, res_in, mem_op_in, rd_in, mask_in)
@@ -44,12 +48,14 @@ begin
         res <= res_in when wre = '1' else res;
         mem_op <= mem_op_in when wre = '1' else mem_op;
         rd <= rd_in when wre = '1' else rd;
+        data_wre <= data_wre_in when wre = '1' else data_wre;
         mask <= mask_in when wre = '1' else mask;
       else
         rs2 <= (others => '0');
         res <= (others => '0');
         mem_op <= '0';
         rd <= (others => '0');
+        data_wre <= '0';
         mask <= (others => '0');
       end if;
     end if;

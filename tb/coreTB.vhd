@@ -281,19 +281,71 @@ begin
 
   -- MEMORY ACCESS
 
-  DATA_MEM: entity work.ram(rtl)
+  --DATA_MEM: entity work.ram(rtl)
+  --generic map(
+  --  ADDR_WIDTH => 12,
+  --  DATA_WIDTH => DATA_WIDTH_TB,
+  --  WORD_WIDTH => 8
+  --)
+  --port map(
+  --  address => res_out_tb(11 downto 0),
+  --  din     => mem_rs2_out_tb,
+  --  dout    => data_dout_tb,
+  --  mask    => data_mask_tb(1 downto 0),
+  --  wre     => data_wre_tb,
+  --  clk     => clk_tb
+  --);
+
+  BANK_0: entity work.ram(rtl)
   generic map(
-    ADDR_WIDTH => 12,
-    DATA_WIDTH => DATA_WIDTH_TB,
-    WORD_WIDTH => 8
+  DATA_WIDTH => 8
   )
   port map(
-    address => res_out_tb(11 downto 0),
-    din     => mem_rs2_out_tb,
-    dout    => data_dout_tb,
-    mask    => data_mask_tb(1 downto 0),
+    address => res_out_tb(7 downto 0),
+    din     => mem_rs2_out_tb(7 downto 0),
+    dout    => data_dout_tb(7 downto 0),
     wre     => data_wre_tb,
-    clk     => clk_tb
+    clk     => clk_tb,
+    en      => (not res_out_tb(1)) and (not res_out_tb(0))
+  );
+
+  BANK_1: entity work.ram(rtl)
+  generic map(
+  DATA_WIDTH => 8
+  )
+  port map(
+    address => res_out_tb(7 downto 0),
+    din     => mem_rs2_out_tb(15 downto 8),
+    dout    => data_dout_tb(15 downto 8),
+    wre     => data_wre_tb,
+    clk     => clk_tb,
+    en      => ((not res_out_tb(1)) and (res_out_tb(0))) or (((not res_out_tb(1)) and (not res_out_tb(0))) and (data_mask_tb(0))) or (data_mask_tb(1))
+  );
+
+  BANK_2: entity work.ram(rtl)
+  generic map(
+  DATA_WIDTH => 8
+  )
+  port map(
+    address => res_out_tb(7 downto 0),
+    din     => mem_rs2_out_tb(23 downto 16),
+    dout    => data_dout_tb(23 downto 16),
+    wre     => data_wre_tb,
+    clk     => clk_tb,
+    en      => ((res_out_tb(1)) and (not res_out_tb(0))) or ((not res_out_tb(1)) and (res_out_tb(0)) and (data_mask_tb(0))) or (data_mask_tb(1))
+  );
+
+  BANK_3: entity work.ram(rtl)
+  generic map(
+  DATA_WIDTH => 8
+  )
+  port map(
+    address => res_out_tb(7 downto 0),
+    din     => mem_rs2_out_tb(31 downto 24),
+    dout    => data_dout_tb(31 downto 24),
+    wre     => data_wre_tb,
+    clk     => clk_tb,
+    en      => (res_out_tb(1) and res_out_tb(0)) or ((res_out_tb(1)) and (not res_out_tb(0)) and data_mask_tb(0)) or (data_mask_tb(1))
   );
 
   MEMWB: entity work.memwb_register(rtl)

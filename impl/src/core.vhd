@@ -6,7 +6,8 @@ entity core is
 port(
   clk   : in std_logic;
   reset : in std_logic;
-  res   : out std_logic_vector(31 downto 0)
+  res   : out std_logic_vector(31 downto 0);
+  mem   : out std_logic_vector(31 downto 0)
 );
 end entity core;
 
@@ -81,6 +82,7 @@ architecture rtl of core is
 begin
 
   res             <= res_out;
+  mem             <= mem_data;
   rd              <= wb_data_out when data_sel_out = '0' else mem_data;
   rd_in           <= inst_out(11 downto 7) when inst_out(6 downto 0) /= "0100011" and inst_out(6 downto 0) /= "1100011" else (others => '0');
   pc_plus_four    <= std_logic_vector(unsigned(idex_pc_out) + 4);
@@ -244,8 +246,10 @@ begin
     rs2_out => mem_rs2_out,
     res_in => res_in,
     res_out => res_out,
-    mem_op_in => mem_wre,
+    mem_op_in => mem_en,
     mem_op_out => mem_op,
+    data_wre_in => mem_wre,
+    data_wre_out => data_wre,
     rd_in => rd_out,
     rd_out => mem_rd_out,
     mask_in => funct3_out,
@@ -254,19 +258,56 @@ begin
 
   -- MEMORY ACCESS
 
-  DATA_MEM: entity work.ram(rtl)
+  BANK_0: entity work.ram(rtl)
   generic map(
-    ADDR_WIDTH => 10,
-    DATA_WIDTH => DATA_WIDTH,
-    WORD_WIDTH => 8
+  DATA_WIDTH => 8
   )
   port map(
-    address => res_out(9 downto 0),
-    din     => mem_rs2_out,
-    dout    => data_dout,
-    mask    => data_mask(1 downto 0),
-    wre     => mem_op,
-    clk     => clk
+    address => res_out(7 downto 0),
+    din     => mem_rs2_out(7 downto 0),
+    dout    => data_dout(7 downto 0),
+    wre     => data_wre,
+    clk     => clk,
+    en      => (not res_out(1)) and (not res_out(0))
+  );
+
+  BANK_1: entity work.ram(rtl)
+  generic map(
+  DATA_WIDTH => 8
+  )
+  port map(
+    address => res_out(7 downto 0),
+    din     => mem_rs2_out(15 downto 8),
+    dout    => data_dout(15 downto 8),
+    wre     => data_wre,
+    clk     => clk,
+    en      => ((not res_out(1)) and (res_out(0))) or (((not res_out(1)) and (not res_out(0))) and (data_mask(0))) or (data_mask(1))
+  );
+
+  BANK_2: entity work.ram(rtl)
+  generic map(
+  DATA_WIDTH => 8
+  )
+  port map(
+    address => res_out(7 downto 0),
+    din     => mem_rs2_out(23 downto 16),
+    dout    => data_dout(23 downto 16),
+    wre     => data_wre,
+    clk     => clk,
+    en      => ((res_out(1)) and (not res_out(0))) or ((not res_out(1)) and (res_out(0)) and (data_mask(0))) or (data_mask(1))
+  );
+
+  BANK_3: entity work.ram(rtl)
+  generic map(
+  DATA_WIDTH => 8
+  )
+  port map(
+    address => res_out(7 downto 0),
+    din     => mem_rs2_out(31 downto 24),
+    dout    => data_dout(31 downto 24),
+    wre     => data_wre,
+    clk     => clk,
+    en      => (res_out(1) and res_out(0)) or ((res_out(1)) and (not res_out(0)) and data_mask(0)) or (data_mask(1))
   );
 
   MEMWB: entity work.memwb_register(rtl)
@@ -279,7 +320,7 @@ begin
     wre => '1',
     data_in => res_out,
     data_out => wb_data_out,
-    data_sel_in => mem_op(1),
+    data_sel_in => mem_op,
     data_sel_out => data_sel_out,
     rd_in => mem_rd_out,
     rd_out => rd_sel,
