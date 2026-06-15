@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity sign_extender is 
+entity sign_extender is
 generic(
   DATA_WIDTH : integer := 32
 );
@@ -17,11 +17,11 @@ begin
   process(data_in, op)
   begin
     case op is
-      when "000" => 
+      when "000" =>
         data_out(7 downto 0) <= data_in(7 downto 0);
-        data_out(DATA_WIDTH - 1 downto 8) <= (others => data_in(7)); 
-      
-      when "001" => 
+        data_out(DATA_WIDTH - 1 downto 8) <= (others => data_in(7));
+
+      when "001" =>
         data_out(15 downto 0) <= data_in(15 downto 0);
         data_out(DATA_WIDTH - 1 downto 16) <= (others => data_in(15));
 

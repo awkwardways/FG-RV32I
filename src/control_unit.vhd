@@ -32,8 +32,8 @@ begin
   imm_addr_src <= '1' when opcode = "1100111" else '0';
   ifid_reset   <= '1' when opcode = "1100111" or opcode = "1101111" else '0';
   branch       <= '1' when opcode = "1100011" else '0';
-  alu_mod      <= '1' when opcode = "1100011" and funct_3 = "001" else
-                  '0' when opcode = "0010011" and funct_3 /= "101" else amod;
+  alu_mod      <= amod when opcode = "0110011" or (opcode = "0010011" and funct_3 = "101") else
+                  '1' when opcode = "1100011" and funct_3 = "001" else '0';
   alu_op       <= "100" when opcode = "1100011" and funct_3 = "000" else
                   "100" when opcode = "1100011" and funct_3 = "001" else
                   "010" when opcode = "1100011" and funct_3 = "100" else

@@ -32,7 +32,7 @@ port(
 );
 end entity idex_register;
 
-architecture rtl of idex_register is 
+architecture rtl of idex_register is
   signal funct3       : std_logic_vector(2 downto 0);
   signal rs1_sel      : std_logic_vector(4 downto 0);
   signal rs1          : std_logic_vector(DATA_WIDTH - 1 downto 0);
@@ -44,7 +44,7 @@ architecture rtl of idex_register is
   signal idex_pc      : std_logic_vector(DATA_WIDTH - 1 downto 0);
   signal opcode       : std_logic_vector(6 downto 0);
 begin
-  
+
   funct3_out <= funct3;
   rs1_sel_out <= rs1_sel;
   rs1_out <= rs1;
@@ -58,7 +58,7 @@ begin
 
 
   process(
-    clk, wre, reset, funct3_in, rs1_in, rs2_in, rd_in, 
+    clk, wre, reset, funct3_in, rs1_in, rs2_in, rd_in,
     imm_in, alu_mod_in, idex_pc_in, opcode_in)
   begin
     if rising_edge(clk) then
@@ -79,7 +79,7 @@ begin
         rs1          <= (others => '0');
         rs2_sel      <= (others => '0');
         rs2          <= (others => '0');
-        rd           <= (others => '0');   
+        rd           <= (others => '0');
         imm          <= (others => '0');
         alu_mod      <= '0';
         idex_pc      <= (others => '0');

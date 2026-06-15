@@ -93,6 +93,23 @@ architecture sim of coretb is
   signal branch_reset_tb        : std_logic;
   signal pc_tree_address_tb     : std_logic_vector(DATA_WIDTH_TB - 1 downto 0);
   signal opcode_out_tb          : std_logic_vector(6 downto 0);
+  signal en_bank0_tb            : std_logic;
+  signal en_bank1_tb            : std_logic;
+  signal en_bank2_tb            : std_logic;
+  signal en_bank3_tb            : std_logic;
+  signal controlreg_douta_tb    : std_logic_vector(7 downto 0);
+  signal controlreg_doutb_tb    : std_logic_vector(7 downto 0);
+  signal bank0_dout_tb          : std_logic_vector(7 downto 0);
+  signal din_bank1_tb           : std_logic_vector(7 downto 0);
+  signal din_bank2_tb           : std_logic_vector(7 downto 0);
+  signal din_bank3_tb           : std_logic_vector(7 downto 0);
+  signal tx_tb                  : std_logic;
+  signal controlreg_dinb_tb     : std_logic_vector(7 downto 0);
+  signal tx_done_tb             : std_logic;
+  signal datareg_doutb_tb       : std_logic_vector(7 downto 0);
+  signal idex_reg_check_tb      : std_logic;
+  signal stall_tb               : std_logic;
+
 begin
 
   clk_tb             <= not clk_tb after CLK_PERIOD / 2;
@@ -111,6 +128,9 @@ begin
   branch_reset_tb    <= branch_tb and branch_taken_tb;
   load_address_tb    <= (ifid_reset_tb or branch_reset_tb) when branch_tb = '0' else branch_taken_tb;
   pc_tree_address_tb <= std_logic_vector(unsigned(imm_addr) + unsigned(imm_out_tb));
+  idex_reg_check_tb  <= '1' when (rd_out_tb = inst_out_tb(19 downto 15)) or (rd_out_tb = inst_out_tb(24 downto 20)) else '0';
+  stall_tb           <= '1' when idex_reg_check_tb = '1' and (mem_en_tb = '1' and mem_wre_tb = '0') else '0';
+  --data_dout_tb(7 downto 0) <= controlreg_douta_tb when res_out_tb(10) and not res_out_tb(0) else bank0_dout_tb;
 
   -- INSTRUCTION FETCH
 
@@ -122,7 +142,7 @@ begin
   port map(
     address => next_pc_tb(13 downto 2),
     data_out => ram_dout_tb,
-    en => not reset_tb,
+    en => not reset_tb and not stall_tb and not branch_reset_tb,
     clk => clk_tb
   );
 
@@ -135,27 +155,19 @@ begin
     pc          => pc_tb,
     address_in  => address_out_tb,
     reset       => reset_tb,
-    clk         => clk_tb
+    clk         => clk_tb,
+    en          => not stall_tb
   );
 
-  PC_MUX_TREE: entity work.pc_tree(rtl)
-  generic map(
-    INSTR_WIDTH => INSTR_WIDTH_TB,
-    ADDR_WIDTH => ADDR_WIDTH_TB
-  )
-  port map(
-    address_out => address_out_tb,
-    pc => next_pc_tb,
-    address => pc_tree_address_tb,
-    address_src => load_address_tb
-  );
+  address_out_tb <= std_logic_vector(unsigned(next_pc_tb) + 4) when load_address_tb = '0' and stall_tb = '0'
+                    else pc_tree_address_tb when load_address_tb = '1' and stall_tb = '0' else next_pc_tb;
 
   IFID: entity work.ifid_register(rtl)
   generic map(
     ADDR_WIDTH => ADDR_WIDTH_TB
   )
   port map(
-    wre             => (not ifid_reset_tb) or (not branch_reset_tb),
+    wre             => ((not ifid_reset_tb) or (not branch_reset_tb)) and (not stall_tb),
     reset           => reset_tb or ifid_reset_tb or branch_reset_tb,
     clk             => clk_tb,
     pc_in           => pc_tb,
@@ -202,8 +214,8 @@ begin
   port map(
     clk => clk_tb,
     reset => reset_tb,
-    rs1_en => inst_out_tb(19) or inst_out_tb(18) or inst_out_tb(17) or inst_out_tb(16) or inst_out_tb(15),
-    rs2_en => inst_out_tb(24) or inst_out_tb(23) or inst_out_tb(22) or inst_out_tb(21) or inst_out_tb(20),
+    rs1_en => (inst_out_tb(19) or inst_out_tb(18) or inst_out_tb(17) or inst_out_tb(16) or inst_out_tb(15)),
+    rs2_en => (inst_out_tb(24) or inst_out_tb(23) or inst_out_tb(22) or inst_out_tb(21) or inst_out_tb(20)),
     rs1_sel => inst_out_tb(19 downto 15),
     rs2_sel => inst_out_tb(24 downto 20),
     rd_sel => rd_sel_tb,
@@ -219,8 +231,8 @@ begin
   )
   port map(
     clk              => clk_tb,
-    reset            => reset_tb or ifid_reset_tb or branch_reset_tb,
-    wre              => '1',
+    reset            => reset_tb or ifid_reset_tb or branch_reset_tb or stall_tb,
+    wre              => not stall_tb,
     opcode_in        => inst_out_tb(6 downto 0),
     opcode_out       => opcode_out_tb,
     funct3_in        => inst_out_tb(14 downto 12),
@@ -265,7 +277,7 @@ begin
     clk => clk_tb,
     reset => reset_tb,
     wre => '1',
-    rs2_in => rs2_out_tb,
+    rs2_in => b_fwd_mux,
     rs2_out => mem_rs2_out_tb,
     res_in => res_in_tb,
     res_out => res_out_tb,
@@ -296,56 +308,103 @@ begin
   --  clk     => clk_tb
   --);
 
+  en_bank0_tb <= (not res_out_tb(1) and not res_out_tb(0));
   BANK_0: entity work.ram(rtl)
   generic map(
   DATA_WIDTH => 8
   )
   port map(
-    address => res_out_tb(7 downto 0),
+    address => res_out_tb(9 downto 2),
     din     => mem_rs2_out_tb(7 downto 0),
-    dout    => data_dout_tb(7 downto 0),
+    dout    => bank0_dout_tb,
     wre     => data_wre_tb,
     clk     => clk_tb,
-    en      => (not res_out_tb(1)) and (not res_out_tb(0))
+    en      => en_bank0_tb and (not res_out_tb(10))
   );
 
+
+  en_bank1_tb <= ((not res_out_tb(1)) and (res_out_tb(0))) or (((not res_out_tb(1)) and (not res_out_tb(0))) and (data_mask_tb(0))) or (data_mask_tb(1));
+  din_bank1_tb <= mem_rs2_out_tb(7 downto 0) when data_mask_tb = "000" else mem_rs2_out_tb(15 downto 8);
   BANK_1: entity work.ram(rtl)
   generic map(
   DATA_WIDTH => 8
   )
   port map(
-    address => res_out_tb(7 downto 0),
-    din     => mem_rs2_out_tb(15 downto 8),
+    address => res_out_tb(9 downto 2),
+    din     => din_bank1_tb,
     dout    => data_dout_tb(15 downto 8),
     wre     => data_wre_tb,
     clk     => clk_tb,
-    en      => ((not res_out_tb(1)) and (res_out_tb(0))) or (((not res_out_tb(1)) and (not res_out_tb(0))) and (data_mask_tb(0))) or (data_mask_tb(1))
+    en      => en_bank1_tb and (not res_out_tb(10))
   );
 
+  en_bank2_tb <= ((res_out_tb(1)) and (not res_out_tb(0))) or ((not res_out_tb(1)) and (res_out_tb(0)) and (data_mask_tb(0))) or (data_mask_tb(1));
+  din_bank2_tb <= mem_rs2_out_tb(23 downto 16) when data_mask_tb = "010" else mem_rs2_out_tb(7 downto 0);
   BANK_2: entity work.ram(rtl)
   generic map(
   DATA_WIDTH => 8
   )
   port map(
-    address => res_out_tb(7 downto 0),
-    din     => mem_rs2_out_tb(23 downto 16),
+    address => res_out_tb(9 downto 2),
+    din     => din_bank2_tb,
     dout    => data_dout_tb(23 downto 16),
     wre     => data_wre_tb,
     clk     => clk_tb,
-    en      => ((res_out_tb(1)) and (not res_out_tb(0))) or ((not res_out_tb(1)) and (res_out_tb(0)) and (data_mask_tb(0))) or (data_mask_tb(1))
+    en      => en_bank2_tb and (not res_out_tb(10))
   );
 
+  en_bank3_tb <= (res_out_tb(1) and res_out_tb(0)) or ((res_out_tb(1)) and (not res_out_tb(0)) and data_mask_tb(0)) or (data_mask_tb(1));
+  din_bank3_tb <= mem_rs2_out_tb(15 downto 8) when data_mask_tb = "001" else mem_rs2_out_tb(31 downto 24) when data_mask_tb = "010" else mem_rs2_out_tb(7 downto 0);
   BANK_3: entity work.ram(rtl)
   generic map(
   DATA_WIDTH => 8
   )
   port map(
-    address => res_out_tb(7 downto 0),
-    din     => mem_rs2_out_tb(31 downto 24),
+    address => res_out_tb(9 downto 2),
+    din     => din_bank3_tb,
     dout    => data_dout_tb(31 downto 24),
     wre     => data_wre_tb,
     clk     => clk_tb,
-    en      => (res_out_tb(1) and res_out_tb(0)) or ((res_out_tb(1)) and (not res_out_tb(0)) and data_mask_tb(0)) or (data_mask_tb(1))
+    en      => en_bank3_tb and (not res_out_tb(10))
+  );
+
+  UART_CONTROL_REG: entity work.dpram(rtl)
+  port map(
+    clk    => clk_tb,
+    wre_a  => data_wre_tb,
+    wre_b  => tx_done_tb,
+    en_a   => res_out_tb(10) and not res_out_tb(0),
+    en_b   => '1',
+    din_a  => mem_rs2_out_tb(7 downto 0),
+    din_b => (others => '0'),
+    dout_a => data_dout_tb(7 downto 0),
+    dout_b => controlreg_doutb_tb
+  );
+
+  UART_DATA_REG: entity work.dpram(rtl)
+  port map(
+    clk    => clk_tb,
+    wre_a  => data_wre_tb,
+    wre_b  => '0',
+    en_a   => res_out_tb(10) and res_out_tb(0),
+    en_b   => '1',
+    din_a  => mem_rs2_out_tb(7 downto 0),
+    din_b  => (others => '0'),
+    dout_a => open,
+    dout_b => datareg_doutb_tb
+  );
+
+  UART: entity work.uart(rtl)
+  port map(
+    data_in => datareg_doutb_tb,
+    data_out => open,
+    tx => tx_tb,
+    rx => '1',
+    wrn => controlreg_doutb_tb(0),
+    rdn => '1',
+    ctsn => controlreg_doutb_tb(0),
+    system_clock_in => clk_tb,
+    tx_done => tx_done_tb
   );
 
   MEMWB: entity work.memwb_register(rtl)

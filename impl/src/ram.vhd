@@ -26,6 +26,8 @@ begin
       if en = '1' then
         dout   <= memory(to_integer(unsigned(address))) when wre = '0' else (others => '0');
         memory(to_integer(unsigned(address))) <= din when wre = '1' else memory(to_integer(unsigned(address)));
+      else
+        dout <= (others => 'Z');
       end if;
     end if;
   end process;

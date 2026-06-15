@@ -21,26 +21,26 @@ begin
   process(opcode, instruction)
   begin
     case opcode is
-      when "0010011" | "1100111" | "0000011" => 
+      when "0010011" | "1100111" | "0000011" =>
         immediate(11 downto 0) <= instruction(31 downto 20);
         immediate(31 downto 12) <= (others => '0') when funct3 = "011" else (others => instruction(31));
-      
-      when "1100011" => 
-        immediate(11 downto 0) <= instruction(31) & instruction(7) & instruction(30 downto 25) & instruction(11 downto 8);
-        immediate(31 downto 12) <= (others => '0') when funct3 = "110" or funct3 = "111" else (others => instruction(31));
 
-      when "0100011" => 
+      when "1100011" =>
+        immediate(12 downto 0) <= instruction(31) & instruction(7) & instruction(30 downto 25) & instruction(11 downto 8) & '0';
+        immediate(31 downto 13) <= (others => '0') when funct3 = "110" or funct3 = "111" else (others => instruction(31));
+
+      when "0100011" =>
         immediate(11 downto 0) <= instruction(31 downto 25) & instruction(11 downto 7);
         immediate(31 downto 12) <= (others => instruction(31));
 
-      when "1101111" => 
+      when "1101111" =>
         immediate(19) <= instruction(31);
         immediate(10) <= instruction(20);
         immediate(9 downto 0) <= instruction(30 downto 21);
         immediate(18 downto 11) <= instruction(19 downto 12);
         immediate(31 downto 20) <= (others => instruction(31));
-      
-      when "0110111" | "0010111" => 
+
+      when "0110111" | "0010111" =>
         immediate(31 downto 12) <= instruction(31 downto 12);
         immediate(11 downto 0) <= (others => '0');
 
